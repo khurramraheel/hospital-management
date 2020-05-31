@@ -1,0 +1,70 @@
+#header-component{
+    position: fixed;
+    top:0;
+    background-color: rgba(0, 0, 0, 0.2);
+    /* border: 1px solid grey; */
+    width: 94vw;
+    height: 85px;
+    background-color: #00c4ff;
+    z-index:10;
+}
+
+
+#header-component  nav ul a {
+    color:black;
+}
+
+#header-component .loggedin-name a{
+    color:white;
+}
+
+#header-component .loggedin-name{
+    background-color: #8a1f1f;
+    padding-left: 20px;
+    padding-right: 10px;   
+}
+
+#header-component nav{
+    width:94%;
+    background-color:#dcf7ff !important;
+}
+
+#header-component .logo-text{
+  font-family: logoFont;
+}
+
+#schedule-btn{
+    position: absolute;
+    left: 0;
+    right:0;
+    margin:auto;
+    width:fit-content;
+    height: fit-content;
+    top:0;
+    bottom:0;
+}
+
+.relative{
+    position: relative;
+}
+
+/* #header-component .logo-text{
+    font-size: 1.5em;
+    font-weight: bold;
+} */
+
+#header-component h4{
+    color:white;
+    display: inline-block;
+    position: relative;
+    left:-35px;
+}
+
+/* #header-component img:nth-child(2){
+    width:350px;
+}
+
+#header-component img{
+    width:150px;
+    vertical-align: middle
+} */

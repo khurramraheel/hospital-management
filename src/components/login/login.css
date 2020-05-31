@@ -1,0 +1,19 @@
+
+/* #loginModel form i{
+    position: relative;
+    top: -13px;
+    left: 15px;
+} */
+
+.helper-text{
+    color: red !important;
+    font-weight: bold;
+}
+
+#loginModel{
+    color: black;;
+}
+
+#loginModel{
+    background-image: none;
+}

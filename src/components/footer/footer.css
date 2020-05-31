@@ -1,0 +1,66 @@
+.footer{
+    background-color:#dcf7ff;
+    color: black;
+    position: relative;
+}
+
+.footer .footer-box .text{
+    font-size:0.6em;
+}
+
+.footer >  .row:last-child{
+    padding-bottom: 16px;
+}
+
+.footer li a:hover{
+    color:brown;
+}
+
+.footer li{
+    display: inline-block;
+}
+
+.footer .footer-box  > div{
+position: absolute;
+bottom: 12%;
+right: 2%;
+text-align: center;
+}
+
+
+.footer .footer-box img{
+    width:70px;
+}
+
+    .footer a{
+        color: floralwhite;
+    }
+/* .footer::after{
+    background-image: url(/mountains-landscape.png);
+    background-position: top right;
+    display: block;
+    height: 60px;
+    position: absolute;
+    right: 0;
+    top: 0;
+    transform: translateY(-100%);
+    width: 100%;
+    z-index: -1;
+} */
+
+.footer .mount{
+    top: -37%;
+    position: absolute;
+    right: 0;
+    z-index:10;
+}
+
+#footer-place{
+    grid-row-start: 2;
+    grid-row-end: 3;
+}
+
+
+.footer li{
+    padding:15px;   
+}

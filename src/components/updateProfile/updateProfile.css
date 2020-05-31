@@ -1,0 +1,23 @@
+#updateProfile{
+    width:60%;
+    margin:auto;
+    margin-top: 100px;
+}
+
+#updateProfile label[for=profilePic]{   
+    background-color: #ffcd71;
+    color: black;
+    padding: 10px;
+    border-radius: 8px;
+}
+
+.previewBox img{
+    width:auto;
+    max-height: 100px;
+}
+
+.previewBox{
+    width: fit-content;
+    margin: auto;
+    border: 1px solid brown;
+}
