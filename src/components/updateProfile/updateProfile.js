@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 // import ReactCrop from 'react-image-crop';
 // import 'react-image-crop/dist/ReactCrop.css';
 import $ from 'jquery';
+import M from 'materialize-css';
 
 import './updateProfile.css';
 import { updateProfile } from './../../store/actions/auth';
@@ -98,6 +99,8 @@ function UpdateProfile(props) {
 
         $('#updateProfile label').addClass('active');
 
+        M.Dropdown.init(document.getElementById('sign_form_category_select'), {});
+
     });
 
     // if (props.store.auth.user.profilePic && !previewUrl) {
@@ -130,11 +133,9 @@ function UpdateProfile(props) {
                 </div> */}
 
                 <div class="card-content" id="registerCardContent">
-                    {!props.store.auth.user._id && <div class="row" id="registerTextFields">
-                        <div className="col m4">
-                            <strong>I am a </strong>
-                        </div>
-                        <div class="input-field col m4">
+                    {!props.store.auth.user._id && <><div className="row"> <strong>I am a </strong></div> <div class="row" id="registerTextFields">
+                        <div className="col m3"></div>
+                        <div class="input-field col m4 text-center">
                             <label>
                                 <input name="group1" value="doctor" type="radio" onChange={(evt) => {
 
@@ -144,7 +145,7 @@ function UpdateProfile(props) {
                                 <span>Doctor</span>
                             </label>
                         </div>
-                        <div class="input-field col m4">
+                        <div class="input-field col m4 text-center">
                             <label>
                                 <input name="group1" value="patient" type="radio" onChange={(evt) => {
 
@@ -154,13 +155,21 @@ function UpdateProfile(props) {
                                 <span>Patient</span>
                             </label>
                         </div>
-                    </div>}
+                    </div></>}
                     <div class="row" id="registerTextFields">
                         <div class="input-field col s12">
                             <input defaultValue={props.store.auth.user.name} id="name" type="text" class="validate" name="name" ref={register({ required: true, minLength: 3 })} />
                             <label for="name" className="active">Name</label>
                             {errors.name && errors.name.type === 'required' && <span id="errors" class="helper-text" > This field is Required</span>}
                             {errors.name && errors.name.type === 'minLength' && <span id="errors" class="helper-text" > Name must contain Three letters</span>}
+                        </div>
+                    </div>
+
+                    <div class="row" id="registerTextFields">
+                        <div class="input-field col s12">
+                            <input defaultValue={props.store.auth.user.contact} id="contact" type="text" class="validate" name="contact" ref={register({ required: true, minLength: 3 })} />
+                            <label for="contact" className="active">Contact</label>
+                            {errors.contact && errors.contact.type === 'required' && <span id="errors" class="helper-text" > This field is Required</span>}
                         </div>
                     </div>
 
@@ -180,6 +189,20 @@ function UpdateProfile(props) {
                         </div>
                     </div>
 
+                    {userType == "doctor" && <div class="row" id="registerTextFields">
+                        <a id="sign_form_category_select" class='dropdown-trigger btn' href='#' data-target='signup-category'>Select Category</a>
+
+                        <ul id='signup-category' class='dropdown-content'>
+                            {
+                                props.store.auth.categories.map((category) => {
+
+                                    return <li data_id={category._id}>{category.name}</li>;
+
+                                })
+                            }
+                        </ul>
+                    </div>}
+
 
 
                     <div class="row" id="registerTextFields">
@@ -192,7 +215,7 @@ function UpdateProfile(props) {
 
                     <div class="row" id="registerTextFields">
                         <div class="input-field col s12">
-                            <textarea  defaultValue={props.store.auth.user.about} id="about" type="number" class="validate height-100" name="about" ref={register({ required: true })}></textarea>
+                            <textarea defaultValue={props.store.auth.user.about} id="about" type="number" class="validate height-100" name="about" ref={register({ required: true })}></textarea>
                             <label for="cnic" className="active">About</label>
                             {errors.about && errors.about.type === 'required' && <span id="errors" class="helper-text" > This field is Required</span>}
                         </div>

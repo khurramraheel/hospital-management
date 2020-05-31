@@ -6,8 +6,16 @@ let userSchema = mongoose.Schema({
     address: String,
     contact: String,
     type: String,
-    profilePic:String,
-    password:String
+    profilePic: String,
+    category: {
+        type:mongoose.SchemaTypes.ObjectId,
+        ref:"Category"
+    },
+    password: String,
+    status: {
+        type: String,
+        default: "active"
+    }
 })
 
 module.exports = mongoose.model('user', userSchema);

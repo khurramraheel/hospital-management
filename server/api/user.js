@@ -28,7 +28,7 @@ router.get('/session', async (req, res) => {
     try {
         let decoded = jwt.verify(req.headers.authorization.split(' ')[1], '123456');
 
-        let user = await User.findById(decoded.user.id);
+        let user = await User.findById(decoded.user.id).populate('category').exec();
 
         // await user.populate('gigs').execPopulate();
 
@@ -51,14 +51,14 @@ router.get('/session', async (req, res) => {
         let appointments = [];
 
         let users = [];
+        categories = await Category.find({});
 
         if (user.type == "doctor") {
             appointments = await Appointment.find({ doctor: user._id });
         } else if (user.type == 'patient') {
             appointments = await Appointment.find({ patient: user._id });
         } else if (user.type == 'admin') {
-            categories = await Category.find({});
-            users = await User.find({ type: { $ne: "admin" } }).exec();
+            users = await User.find({ type: { $ne: "admin" } }).populate('category').exec();
         }
 
         const payload = {
@@ -273,6 +273,7 @@ router.post('/updateAccount', async (req, res) => {
 
         res.json(
             {
+                user:user,
                 success: true
             }
         );
@@ -294,7 +295,7 @@ router.post('/login', async (req, res) => {
     const { email, password } = req.body;
     try {
         //see if user exists
-        let user = await User.findOne({ email });
+        let user = await User.findOne({ email }).populate('category').exec();
 
         if (!user) {
             return res.status(400).json({ error: "Invalid Credentials" })
@@ -325,14 +326,14 @@ router.post('/login', async (req, res) => {
         let categories = [];
         let appointments = [];
         let users = [];
+        categories = await Category.find({});
 
         if (user.type == 'doctor') {
             appointments = await Appointment.find({ doctor: user._id });
         } else if (user.type == 'patient') {
             appointments = await Appointment.find({ patient: user._id });
         }else if (user.type == 'admin') {
-            categories = await Category.find({});
-            users = await User.find({ type: { $ne: "admin" } }).exec();
+            users = await User.find({ type: { $ne: "admin" } }).populate('category').exec();
         }
 
         // if (user.type == "admin") {

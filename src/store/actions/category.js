@@ -8,7 +8,7 @@ let host = "";
 
 export const loadCategory = async (payload) => {
     try {
-        let res = await axios.get(host+'/api/category/getall');
+        let res = await axios.get(host + '/api/category/getall');
         if (Array.isArray(res.data)) {
             toast.success("Categories loaded successfully");
             store.dispatch({
@@ -21,9 +21,9 @@ export const loadCategory = async (payload) => {
     }
 }
 
-export const deleteCategory = async (medID) => {
+export const deleteCategory = (medID) => async dispatch => {
     try {
-        let res = await axios.delete(host+'/api/category/delete/' + medID);
+        let res = await axios.delete(host + '/api/category/delete/' + medID);
         if (res.data._id) {
             toast.success("Category deleted successfully");
             store.dispatch({
@@ -36,9 +36,24 @@ export const deleteCategory = async (medID) => {
     }
 }
 
-export const saveCategory = async (payload) => {
+export const updateCategory = (payload) => async dispatch => {
     try {
-        let res = await axios.post(host+'/api/category/create', payload);
+        let res = await axios.put(host + '/api/category/update', payload);
+        if (res.data._id) {
+            toast.success("Category updated successfully");
+            store.dispatch({
+                type: "CATEGORY_UPDATED",
+                payload: res.data
+            });
+        }
+    } catch (e) {
+        toast.success("Category could not be updated!");
+    }
+}
+
+export const saveCategory = (payload) => async dispatch => {
+    try {
+        let res = await axios.post(host + '/api/category/create', payload);
         if (res.data._id) {
             toast.success("Category added successfully");
             store.dispatch({

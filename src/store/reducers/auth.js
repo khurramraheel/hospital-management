@@ -13,10 +13,10 @@ let initialData = {
             name: "khanG"
         }
     }],
-    categories:[
+    categories: [
         {
-            categoryID:"232",
-            name:"Sadasd"
+            categoryID: "232",
+            name: "Sadasd"
         }
     ]
 };
@@ -26,6 +26,22 @@ export default (state = initialData, action) => {
     state = JSON.parse(JSON.stringify(state));
 
     switch (action.type) {
+
+        case 'ACCOUNT_STATUS_ACTIVATED':
+            state.users.forEach((user) => {
+                if (user._id == action.payload._id) {
+                    user.status = action.payload.status;
+                }
+            });
+            break;
+
+        case 'CATEGORY_UPDATED':
+            state.categories.forEach((category) => {
+                if (category._id == action.payload._id) {
+                    category.name = action.payload.name;
+                }
+            });
+            break;
 
         case 'CATEGORY_ADDED':
             state.categories.push(action.payload);

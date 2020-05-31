@@ -17,10 +17,12 @@ let User = require('./models/user');
 
 
 let userController = require('./api/user');
+let categController = require('./api/category');
 
 app.use(express.json({ limit: '50mb' }));
 
 app.use('/api/auth/', userController);
+app.use('/api/category/', categController);
 
 
 app.use((err, req, res, next) => {

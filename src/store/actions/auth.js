@@ -46,6 +46,11 @@ export const checkUserSession = (body) => async dispatch => {
         if (res.data.success) {
 
             dispatch({
+                type: 'CATEGORY_LOADED',
+                payload: res.data.categories
+            });
+
+            dispatch({
                 type: "LOGIN_SUCCESSFUL",
                 payload: res.data.user,
                 users: res.data.users,
@@ -168,7 +173,7 @@ export const updateAccount = (body) => async dispatch => {
 
             dispatch({
                 type: "ACCOUNT_STATUS_ACTIVATED",
-                payload: body
+                payload: { ...res.data.user, ...body }
             });
 
 
@@ -233,9 +238,12 @@ export const login = (body) => async dispatch => {
 
         if (res.data.success) {
 
-
             localStorage.setItem('token', res.data.token);
 
+            dispatch({
+                type: 'CATEGORY_LOADED',
+                payload: res.data.categories
+            });
 
             dispatch({
                 type: "LOGIN_SUCCESSFUL",
