@@ -36,6 +36,13 @@ export const deleteCategory = (medID) => async dispatch => {
     }
 }
 
+export const loadDoctorsByCategory = (payload) => {
+    
+    return axios.post('/api/category/load_doctors/'+payload);
+
+}
+
+
 export const updateCategory = (payload) => async dispatch => {
     try {
         let res = await axios.put(host + '/api/category/update', payload);

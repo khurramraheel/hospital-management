@@ -1,4 +1,5 @@
 let Category = require('./../models/category');
+let User = require('./../models/user');
 let router = require('express').Router();
 
 router.post('/create', (req, res) => {
@@ -19,7 +20,16 @@ router.get('/getall', (req, res) => {
 
 });
 
-router.delete('/delete/:id', (req, res) => {    
+router.post('/load_doctors/:category', (req, res) => {
+
+    User.find({ category: req.params.category, type: "doctor" }, (err, doctors) => {
+
+        res.json(doctors);
+
+     });
+
+});
+router.delete('/delete/:id', (req, res) => {
 
     Category.findByIdAndRemove(req.params.id, (err, category) => {
         res.json(err || category);
@@ -29,7 +39,7 @@ router.delete('/delete/:id', (req, res) => {
 
 router.put('/update', (req, res) => {
 
-    Category.findByIdAndUpdate(req.body.id, req.body ,{new:true}, (err, category) => {
+    Category.findByIdAndUpdate(req.body.id, req.body, { new: true }, (err, category) => {
         res.json(err || category);
     });
 

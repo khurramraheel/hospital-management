@@ -57,18 +57,15 @@ export const checkUserSession = (body) => async dispatch => {
             });
 
             dispatch({
-                type: "USER_ORDERS_LOADED",
-                pending: res.data.pending,
-                active: res.data.active,
-                sellerOrders: res.data.sellerOrders,
-                userOrders: res.data.user.orders,
+                type:'APPOINTMENT_LOADED',
+                payload:res.data.appointments
             });
 
 
-            dispatch({
-                type: 'USER_GIGS_LOADED',
-                payload: res.data.user.gigs
-            });
+            // dispatch({
+            //     type: 'USER_GIGS_LOADED',
+            //     payload: res.data.user.gigs
+            // });
 
             // let loggedUser = res.data.loggedInUser;
 
@@ -239,6 +236,11 @@ export const login = (body) => async dispatch => {
         if (res.data.success) {
 
             localStorage.setItem('token', res.data.token);
+
+            dispatch({
+                type:'APPOINTMENT_LOADED',
+                payload:res.data.appointments
+            });
 
             dispatch({
                 type: 'CATEGORY_LOADED',

@@ -5,6 +5,8 @@ import M from 'materialize-css';
 import { updateAccount } from './../../store/actions/auth';
 import { toast } from 'react-toastify';
 import { saveCategory, deleteCategory, updateCategory } from './../../store/actions/category';
+import { confirmAppointment } from './../../store/actions/schedules';
+import { confirmAlert } from 'react-confirm-alert'; // Import
 
 class Dashboard extends React.Component {
 
@@ -79,10 +81,10 @@ class Dashboard extends React.Component {
 
                                             if (!newName || !newName.length) {
                                                 return toast.error("Category name cannot be empty");
-                                            }                                    
+                                            }
 
                                             this.props.updateCategory({
-                                                id:category._id,
+                                                id: category._id,
                                                 name: newName
                                             });
 
@@ -320,7 +322,55 @@ class Dashboard extends React.Component {
                                         <td>{appointment.patient.name}</td>
                                         <td>{appointment.patient.contact}</td>
                                         <td>{appointment.patientSymptoms}</td>
-                                        <td><button className="def-btn">Confirm Appointment</button></td>
+                                        <td><button className="def-btn" onClick={() => {
+
+
+                                            confirmAlert({
+                                                title: 'Confirm Appointment',
+                                                message: 'Are you sure you want to confirm this appointment?',
+                                                buttons: [
+                                                    {
+                                                        label: 'Yes',
+                                                        onClick: () => {
+                                                            let cAppoinment = { ...appointment, status: "confirmed" };
+                                                            this.props.confirmAppointment(cAppoinment)
+                                                        }
+                                                    },
+                                                    {
+                                                        label: 'No',
+                                                        onClick: () => {}
+
+                                                    }
+                                                ]
+                                            });
+
+
+
+                                        }}>Confirm</button></td>
+                                        <td><button className="def-btn-danger" onClick={() => {
+
+                                          
+
+                                            confirmAlert({
+                                                title: 'Reject Appointment',
+                                                message: 'Are you sure you want to reject this appointment?',
+                                                buttons: [
+                                                    {
+                                                        label: 'Yes',
+                                                        onClick: () => {
+                                                            let cAppoinment = { ...appointment, status: "rejected" };
+                                                            this.props.confirmAppointment(cAppoinment)
+                                                        }
+                                                    },
+                                                    {
+                                                        label: 'No',
+                                                        onClick: () => {}
+                                                        
+                                                    }
+                                                ]
+                                            });
+
+                                        }}>Reject</button></td>
 
                                     </tr>
 
@@ -367,14 +417,14 @@ class Dashboard extends React.Component {
                             </thead>
                             {
                                 this.props.store.auth.appointments.filter((appointment) => {
-                                    return appointment.cofirmed
+                                    return appointment.status == "confirmed"
                                 }).map((appointment) => {
 
                                     return <tr>
                                         <td>{appointment.appointID}</td>
                                         <td>{appointment.timing}</td>
-                                        <td>{appointment.patientName}</td>
-                                        <td>{appointment.patientContact}</td>
+                                        <td>{appointment.patient.name}</td>
+                                        <td>{appointment.patient.contact}</td>
                                         <td>{appointment.patientSymptoms}</td>
                                     </tr>
 
@@ -396,4 +446,4 @@ export default connect((store) => {
 
     return { store };
 
-}, { updateAccount, saveCategory, deleteCategory, updateCategory })(Dashboard);
+}, { updateAccount, saveCategory, deleteCategory, updateCategory, confirmAppointment })(Dashboard);

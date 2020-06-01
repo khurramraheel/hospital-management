@@ -38,12 +38,28 @@ html {
   width:35px;
 }
 
+.react-confirm-alert-body > h1{
+  font-size:1.2em;
+}
+
+.def-btn-danger{
+  /* font-size: 1.2em; */
+  padding: 10px;
+  background-color:#ffdada;
+  outline: none;
+  border: none;
+  padding-left: 20px;
+  padding-right: 20px;
+  font-weight: bold;
+  color: black;
+}
+
 .def-btn{
   /* font-size: 1.2em; */
   padding: 10px;
   background-color:#8fe5ff;
   outline: none;
-  border: 1px solid gray;
+  border: none;
   padding-left: 20px;
   padding-right: 20px;
   font-weight: bold;
@@ -98,6 +114,10 @@ nav .brand-logo{
   text-shadow:2px 2px 0px #7aa092;
   left:0;
   color:black;
+}
+
+html{
+  height:100%;  
 }
 
 body{

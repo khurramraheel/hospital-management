@@ -1,5 +1,5 @@
 #header-component{
-    position: fixed;
+    /* position: fixed; */
     top:0;
     background-color: rgba(0, 0, 0, 0.2);
     /* border: 1px solid grey; */
@@ -9,6 +9,9 @@
     z-index:10;
 }
 
+#header-component nav{
+    position: relative !important;
+}
 
 #header-component  nav ul a {
     color:black;
@@ -19,7 +22,7 @@
 }
 
 #header-component .loggedin-name{
-    background-color: #8a1f1f;
+    background-color: #1f808a;
     padding-left: 20px;
     padding-right: 10px;   
 }

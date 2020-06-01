@@ -54,9 +54,9 @@ router.get('/session', async (req, res) => {
         categories = await Category.find({});
 
         if (user.type == "doctor") {
-            appointments = await Appointment.find({ doctor: user._id });
+            appointments = await Appointment.find({ doctor: user._id }).populate('patient').exec();
         } else if (user.type == 'patient') {
-            appointments = await Appointment.find({ patient: user._id });
+            appointments = await Appointment.find({ patient: user._id }).populate('doctor').exec();
         } else if (user.type == 'admin') {
             users = await User.find({ type: { $ne: "admin" } }).populate('category').exec();
         }
@@ -329,9 +329,9 @@ router.post('/login', async (req, res) => {
         categories = await Category.find({});
 
         if (user.type == 'doctor') {
-            appointments = await Appointment.find({ doctor: user._id });
+            appointments = await Appointment.find({ doctor: user._id }).populate('patient').exec();;
         } else if (user.type == 'patient') {
-            appointments = await Appointment.find({ patient: user._id });
+            appointments = await Appointment.find({ patient: user._id }).populate('doctor').exec();;
         }else if (user.type == 'admin') {
             users = await User.find({ type: { $ne: "admin" } }).populate('category').exec();
         }

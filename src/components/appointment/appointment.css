@@ -3,5 +3,53 @@
     width: 50%;
     margin: auto;
     position: relative;
-    top: 100px;
+    top: 15px;
+    margin-bottom: 50px;
+    padding-bottom: 35px;
 }
+#appointmentComponent table thead{
+    background-color: #d1dfff;
+}
+#appointmentComponent table {
+    text-align: center; 
+}
+
+#appointmentComponent table{
+     background-color: #f7fffe;
+ }
+
+/* .text-center  */
+
+.datepicker-modal{
+    height: 500px;
+    overflow: auto;
+}
+
+#appointmentComponent .allow-events{
+    pointer-events: all;
+}
+
+#appointmentComponent li{
+    padding:10px;
+}
+
+#appointmentComponent #datep_appointment {
+    display: none;
+}
+
+#appointmentComponent .doctor-thumb{
+    width:150px;
+}
+
+h6 label{
+    font-size: 1em;
+}
+
+
+#appointmentComponent .ui-datepicker-calendar tbody td > a.hover-calendar-cell {
+    border: 1px solid #074e91;
+    background: #5bacf7 url(/images/ui-bg_glass_15_5bacf7_1x400.png) 50% 50% repeat-x;
+    font-weight: normal;
+    color: #1a1a1a;
+}
+#appointmentComponent #addon{background-color:#999; width:100%}

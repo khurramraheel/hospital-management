@@ -27,6 +27,32 @@ export default (state = initialData, action) => {
 
     switch (action.type) {
 
+        case 'APPOINTMENT_SAVED':
+            state.appointments.push(action.payload.appointment);
+            break;
+
+        case 'APPOINTMENT_LOADED':
+            state.appointments = action.payload;
+            break;
+
+        case 'APPOINTMENT_CONFIRMED':
+
+            let targetAppointment = state.appointments.find((appointment) => {
+                return appointment._id == action.payload.appointment._id;
+            });
+
+            if(targetAppointment){
+                state.appointments[state.appointments.indexOf(targetAppointment)] = action.payload; 
+            }
+
+            break;
+
+        case 'APPOINTMENT_CANCELLED':
+            state.appointments = state.appointments.filter(((appointment) => {
+                return appointment._id != action.payload._id;
+            }));
+            break;
+
         case 'ACCOUNT_STATUS_ACTIVATED':
             state.users.forEach((user) => {
                 if (user._id == action.payload._id) {

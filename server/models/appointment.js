@@ -11,7 +11,8 @@ let userSchema = mongoose.Schema({
         type: mongoose.SchemaTypes.ObjectId,
         ref: "user"
     },
-    timing: Date,
+    date:String,
+    timing: String,
     status:{
         type:String,
         default:"pending"

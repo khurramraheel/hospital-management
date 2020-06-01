@@ -8,8 +8,8 @@ let userSchema = mongoose.Schema({
     type: String,
     profilePic: String,
     category: {
-        type:mongoose.SchemaTypes.ObjectId,
-        ref:"Category"
+        type: mongoose.SchemaTypes.ObjectId,
+        ref: "Category"
     },
     password: String,
     status: {
