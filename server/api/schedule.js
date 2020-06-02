@@ -13,6 +13,65 @@ router.post('/confirm', async (req, res) => {
         let patient = await User.findById(req.body.patient);
         let doctor = await User.findById(req.body.doctor);
 
+        //It was canceleld by the patient
+        if (req.body.status == "cancelled" && req.body.actionBy == "patient") {
+
+            let appointment = await Appointment.findById(req.body._id);
+            await appointment.populate("patient doctor").execPopulate();
+
+            let cAppointment = appointment.toJSON();
+            cAppointment.status = "cancelled";
+
+            if (appointment) {
+
+                // await appointment.remove();
+
+                extra.sendEmail({
+                    email: doctor.email,
+                    subject: "Appointment cancelled with your patient." + patient.name,
+                    html: "Dear, <strong>" + doctor.name + "</strong>, Please be informed that your appointment <strong>(#" + appointment.appointID + ")</strong> with your patient <strong>" + patient.name + "</strong>, has been cancelled requested on date " + appointment.date + " at " + appointment.timing + ". The reason for cancellation is mentioned below: <div><strong>" + req.body.cancelReason + "</strong></div>"
+                });
+
+            }
+            res.json({
+                success: true,
+                appointment: cAppointment
+            });
+
+            return;
+
+
+        }
+
+        //It was cancelled by the doctor
+        if (req.body.status == "cancelled" && req.body.actionBy == "doctor") {
+
+            let appointment = await Appointment.findById(req.body._id);
+            await appointment.populate("patient doctor").execPopulate();
+
+            let cAppointment = appointment.toJSON();
+            cAppointment.status = "cancelled";
+
+            if (appointment) {
+
+                await appointment.remove();
+
+                extra.sendEmail({
+                    email: pateint.email,
+                    subject: "Appointment cancelled with your doctor." + doctor.name,
+                    html: "Dear, <strong>" + patint.name + "</strong>, We are very to inform you that your appointment <strong>(#" + appointment.appointID + ")</strong> with your dr.<strong>" + doctor.name + "</strong>, has been cancelled requested on date " + appointment.date + " at " + appointment.timing + ". The reason for cancellation is mentioned below: <div><strong>" + req.body.cancelReason + "</strong></div>"
+                });
+
+            }
+            res.json({
+                success: true,
+                appointment: cAppointment
+            });
+
+            return;
+
+
+        }
 
         if (req.body.status == "rejected") {
 
@@ -28,7 +87,7 @@ router.post('/confirm', async (req, res) => {
                 extra.sendEmail({
                     email: patient.email,
                     subject: "Appointment cancelled with Dr." + doctor.name,
-                    html: "Dear, <strong>" + patient.name + "</strong>, Please be informed that your appoint with <strong>Dr." + doctor.name + "</strong>, has been cancelled requested on date " + appointment.date + " at " + appointment.timing + "."
+                    html: "Dear, <strong>" + patient.name + "</strong>, Please be informed that your appointment <strong>(#" + appointment.appointID + ")</strong> with <strong>Dr." + doctor.name + "</strong>, has been cancelled requested on date " + appointment.date + " at " + appointment.timing + "."
                 });
 
             }
@@ -40,8 +99,8 @@ router.post('/confirm', async (req, res) => {
             return;
         }
 
-        let appointment = await Appointment.findByIdAndUpdate(req.body._id, req.body);
-        await appointment.populate("patient doctor");
+        let appointment = await Appointment.findByIdAndUpdate(req.body._id, req.body, { new: true });
+        await appointment.populate("patient doctor").execPopulate();
 
         // let patient = await User.findById(req.body.patient);
         // let doctor = await User.findById(req.body.doctor);

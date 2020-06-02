@@ -39,7 +39,7 @@ router.delete('/delete/:id', (req, res) => {
 
 router.put('/update', (req, res) => {
 
-    Category.findByIdAndUpdate(req.body.id, req.body, { new: true }, (err, category) => {
+    Category.findByIdAndUpdate(req.body._id, req.body, { new: true }, (err, category) => {
         res.json(err || category);
     });
 
