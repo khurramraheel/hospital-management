@@ -2,9 +2,52 @@
 let router = require('express').Router();
 
 let Appointment = require('./../models/appointment');
+
+// let Patient = require('./../models/user');
+
 let User = require('./../models/user');
 
 let extra = require('./../extras');
+
+router.get('/load_patients', async (req, res) => {
+
+    let patients = [];
+    try {
+        let appointments = await Appointment.find({ doctor: req.query.id });
+
+        await Promise.all(appointments.map(async (appointment) => {
+
+            let patient = await User.findById(appointment.patient.toString());
+
+            let patientExist = patients.find((cPatient) => {
+                return cPatient.data._id.toString() == patient._id.toString()
+            });
+
+            if (!patientExist) {
+                patients.push({
+                    data: patient.toJSON(),
+                    visits: 1
+                })
+            } else {
+                patientExist.visits++;
+            }
+
+            return patients;
+
+        }));
+
+        res.json({
+            success: true,
+            patients: patients
+        });
+
+    } catch (e) {
+        res.    json({
+            success: false
+        })
+    }
+
+});
 
 router.post('/confirm', async (req, res) => {
 

@@ -14,6 +14,8 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import 'react-confirm-alert/src/react-confirm-alert.css'; // Import css
 
+import Patients from './components/patients/patients';
+
 let checkedSession;
 
 class App extends React.Component {
@@ -36,7 +38,7 @@ class App extends React.Component {
 
         <Header />
         <Route path="/" exact component={Home} />
-
+        <Route path="/patients" exact component={Patients} />
 
         <Route path="/dashboard" component={Dashboard} />
         <Route path="/signup" component={Signup} />

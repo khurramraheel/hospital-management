@@ -120,6 +120,14 @@ html{
   height:100%;  
 }
 
+table thead{
+  background-color: #ffead9;
+}
+
+body{
+  overflow:auto !important;
+}
+
 body{
   background-image: url('/images/background-delivery.jpg');
   width:100%;

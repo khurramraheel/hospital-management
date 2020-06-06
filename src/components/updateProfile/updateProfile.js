@@ -8,28 +8,23 @@ import M from 'materialize-css';
 
 import './updateProfile.css';
 import { updateProfile } from './../../store/actions/auth';
-
-// function dataURLtoFile(dataurl, filename) {
-
-//     var arr = dataurl.split(','),
-//         mime = arr[0].match(/:(.*?);/)[1],
-//         bstr = atob(arr[1]),
-//         n = bstr.length,
-//         u8arr = new Uint8Array(n);
-
-//     while (n--) {
-//         u8arr[n] = bstr.charCodeAt(n);
-//     }
-
-//     return new File([u8arr], filename, { type: mime });
-// }
-
+import { loadCategories } from './../../store/actions/category';
 
 function UpdateProfile(props) {
 
     const { register, handleSubmit, errors } = useForm();
 
+    let [categories, setCategories] = useState([]);
 
+    let [selectedCategory, setSelectedCategory] = useState({ name: "Select Category" });
+
+    if (!categories.length) {
+
+        loadCategories().then((res) => {
+            setCategories(res.data);
+        });
+
+    }
     const [userType, setUserType] = useState('patient');
 
     const [upImg, setUpImg] = useState();
@@ -120,6 +115,7 @@ function UpdateProfile(props) {
 
             props.updateProfile({
                 ...data,
+                category:selectedCategory._id,
                 type: userType,
                 _id: props.store.auth.user._id,
                 profilePic: upImg
@@ -190,13 +186,15 @@ function UpdateProfile(props) {
                     </div>
 
                     {userType == "doctor" && <div class="row" id="registerTextFields">
-                        <a id="sign_form_category_select" class='dropdown-trigger btn' href='#' data-target='signup-category'>Select Category</a>
+                        <a id="sign_form_category_select" class='dropdown-trigger btn' href='#' data-target='signup-category'>{selectedCategory.name}</a>
 
                         <ul id='signup-category' class='dropdown-content'>
                             {
-                                props.store.auth.categories.map((category) => {
+                                categories.map((category) => {
 
-                                    return <li data_id={category._id}>{category.name}</li>;
+                                    return <li onClick={() => {
+                                        setSelectedCategory(category)
+                                    }} data_id={category._id}>{category.name}</li>;
 
                                 })
                             }

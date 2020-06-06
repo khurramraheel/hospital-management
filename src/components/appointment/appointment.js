@@ -66,10 +66,38 @@ ConfirmDialog = connect((store) => {
 
 let date = null;
 
+let alreadyLoaded = false;
+
 function Login(props) {
 
     let [doctors, setDoctors] = useState([]);
-    let [category, setCategory] = useState("Select Domain..");
+
+    let searchedCategory = props.location.search.split('=');
+
+    let cCategory = null;
+    debugger;
+
+    // searchedCategory && searchedCategory[1] && !alreadyLoaded) {
+
+    let [category, setCategory] = useState(searchedCategory && searchedCategory[1] ? searchedCategory[1] : "Select Domain..");
+
+    // if (props.store.auth.categories.length && searchedCategory && searchedCategory[1] && !alreadyLoaded) {
+
+    //     alreadyLoaded = true;
+
+
+    //     cCategory = props.store.auth.categories.find((category) => {
+    //         return category.name == searchedCategory[1];
+    //     });
+
+
+
+    //     cCategory && setCategory(cCategory) && loadDoctorsByCategory(cCategory._id).then((res) => {
+    //         setDoctors(res.data);
+    //     });
+    // }
+
+
     let [timing, setTiming] = useState("");
     // let [date, setDate] = useState("");
 
@@ -223,8 +251,8 @@ function Login(props) {
 
 
         {
-            doctors.length > 0 && <div className="text-left">
-                <h6 className="text-left">{doctors.length} doctors avaiable!</h6>
+            (props.store.auth.doctors.length > 0 || doctors.length > 0) && <div className="text-left">
+                <h6 className="text-left">{props.store.auth.doctors.length || doctors.length} doctors avaiable!</h6>
                 <table className="striped">
                     <thead>
                         <th>Doctor Pic</th>
@@ -234,7 +262,7 @@ function Login(props) {
                         <th></th>
                     </thead>
                     {
-                        doctors.map((doctor) => {
+                        (props.store.auth.doctors.length ? props.store.auth.doctors : doctors).map((doctor) => {
                             return <tr style={{ backgroundColor: selectedDoctor == doctor ? "#efefef" : "" }}>
                                 <td><img className="doctor-thumb" src={doctor.profilePic} /></td>
                                 <td>{doctor.name}</td>

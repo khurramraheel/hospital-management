@@ -20,7 +20,8 @@ export const confirmAppointment = (payload) => async dispatch => {
                 payload: res.data
             });
 
-            toast.success(payload.status == "confirmed" ? "Appointment confirmed!" : "Appointment rejected!");
+
+            toast.success("Appointment " + payload.status + "!");
 
         }
     } catch (e) {

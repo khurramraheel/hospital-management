@@ -5,6 +5,9 @@ import store from './../store';
 // let host = "http://localhost:5000";
 let host = "";
 
+export const loadCategories = () => {
+    return axios.get(host + '/api/category/getall');
+}
 
 export const loadCategory = async (payload) => {
     try {
@@ -37,8 +40,8 @@ export const deleteCategory = (medID) => async dispatch => {
 }
 
 export const loadDoctorsByCategory = (payload) => {
-    
-    return axios.post('/api/category/load_doctors/'+payload);
+
+    return axios.post('/api/category/load_doctors/' + payload);
 
 }
 

@@ -54,10 +54,16 @@ function Header(props) {
                                 <Link to="/write">New Story</Link>
                             </li> */}
 
+                            {props.store.auth.user.type == "doctor" &&
+                                <>
+                                    <li><Link to='/patients'>Patients</Link></li>
+
+                                </>
+                            }
                             {props.store.auth.user.type == "patient" &&
                                 <>
                                     <li><Link to='/appointment'>Request Appointment</Link></li>
-                                    
+
                                 </>
                             }
                             {/* {props.store.auth.user.type != "seler" &&  <li><Link to='/chat'>Accounts</Link></li>} */}
@@ -101,7 +107,7 @@ function Header(props) {
         </div>
 
 
-        
+
     </header>
 
     // }

@@ -1,0 +1,12 @@
+student portal:
+sab sa phla ak student portal ho jis ma student apna form fill kara is ma wo apni degree or year
+ mention kara or apni fee ka vocher ki pic or or vocher namber upload kara or student ka vocher 
+or degree ki verifucation hona ka bad usa us ka hostal name or room no ka card print ho jay .is
+ ma har student apni maximum 5 ya 6 pic upload kara ta ka ...AI ... ka model train ho saka jo us 
+ka relivent hostal ma us ka face recognization ma kam 
+a ska. warden hall portal :is ma wo student ka fee or degree ki verifcation kara or usa mansib jis
+ hostal ma larko ki space majod ho us hostal ma us ki alotment kar da or agr koi student hostal 
+change karna chahta ha to usa space ko dehan rakh ka us ka hostal change kar da.or all hostals 
+ka student ka record save kara.
+hostel name:
+is ma wo student ka record rakha jo us hostal ma rhta han.or is ma har hostal ka bhir gard apna mobil ka camra sa pic khanch ka student ka record check kara or student ka hostal ma ana or bhir jana ka record save kar dain us ka face dekh ka . or agr koi outsider aya us ki pic khancha or name likh ska or un ka liya alaram set kar da jasa ya 7 bajha ka bad ya alaram hostal walo ko bta da ka ya student abi tak hostal ma majoodh ha .

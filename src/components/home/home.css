@@ -1,0 +1,12 @@
+.category-card{
+    width:200px;
+    height: 200px;
+    background-color: white;
+    box-shadow: 2px 2px 2px 2px #e4e4e4;
+    margin:10px;
+    padding:10px;
+}
+.category-card img{
+    max-height: 110px;
+    width:auto;
+}

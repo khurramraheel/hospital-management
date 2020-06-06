@@ -14,11 +14,12 @@ let initialData = {
         }
     }],
     categories: [
-        {
-            categoryID: "232",
-            name: "Sadasd"
-        }
-    ]
+        // {
+        //     categoryID: "232",
+        //     name: "Sadasd"
+        // }
+    ],
+    doctors: []
 };
 
 export default (state = initialData, action) => {
@@ -26,6 +27,10 @@ export default (state = initialData, action) => {
     state = JSON.parse(JSON.stringify(state));
 
     switch (action.type) {
+
+        case 'DOCTORS_LOADED':
+            state.doctors = action.payload;
+            break;
 
         case 'APPOINTMENT_SAVED':
             state.appointments.push(action.payload.appointment);
@@ -37,12 +42,20 @@ export default (state = initialData, action) => {
 
         case 'APPOINTMENT_CONFIRMED':
 
+
             let targetAppointment = state.appointments.find((appointment) => {
                 return appointment._id == action.payload.appointment._id;
             });
 
-            if(targetAppointment){
-                state.appointments[state.appointments.indexOf(targetAppointment)] = action.payload; 
+            if (targetAppointment) {
+
+                if (action.payload.appointment.status == "cancelled") {
+
+                    state.appointments.splice(state.appointments.indexOf(targetAppointment), 1);
+
+                } else {
+                    state.appointments[state.appointments.indexOf(targetAppointment)] = action.payload.appointment;
+                }
             }
 
             break;
@@ -62,11 +75,16 @@ export default (state = initialData, action) => {
             break;
 
         case 'CATEGORY_UPDATED':
-            state.categories.forEach((category) => {
-                if (category._id == action.payload._id) {
-                    category.name = action.payload.name;
-                }
+
+            let targetCategory = state.categories.find((category) => {
+                return category._id == action.payload._id;
             });
+
+            if (targetCategory) {
+                state.categories[state.categories.indexOf(targetCategory)] = action.payload;
+            }
+
+            // category = { ...action.payload };
             break;
 
         case 'CATEGORY_ADDED':
