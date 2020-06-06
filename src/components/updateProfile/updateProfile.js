@@ -115,7 +115,7 @@ function UpdateProfile(props) {
 
             props.updateProfile({
                 ...data,
-                category:selectedCategory._id,
+                category: selectedCategory._id,
                 type: userType,
                 _id: props.store.auth.user._id,
                 profilePic: upImg
@@ -216,6 +216,14 @@ function UpdateProfile(props) {
                             <textarea defaultValue={props.store.auth.user.about} id="about" type="number" class="validate height-100" name="about" ref={register({ required: true })}></textarea>
                             <label for="cnic" className="active">About</label>
                             {errors.about && errors.about.type === 'required' && <span id="errors" class="helper-text" > This field is Required</span>}
+                        </div>
+                    </div>
+
+                    <div class="row" id="registerTextFields">
+                        <div class="input-field col s12">
+                            <input defaultValue={props.store.auth.user.qualification} id="qualification" type="number" class="validate" name="qualification" ref={register({ required: true })} />
+                            <label for="qualification" className="active">Qualification</label>
+                            {errors.qualification && errors.qualification.type === 'required' && <span id="errors" class="helper-text" > This field is Required</span>}
                         </div>
                     </div>
 

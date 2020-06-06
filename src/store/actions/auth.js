@@ -30,6 +30,17 @@ export const checkUserSession = (body) => async dispatch => {
 
     let myToken = localStorage.getItem("token");
     if (!myToken) {
+
+        try {
+            let res = await axios.get('/api/category/getall');
+            dispatch({
+                type: 'CATEGORY_LOADED',
+                payload:res.data
+            });
+        } catch (e) {
+
+        }
+
         return;
     }
 
@@ -57,8 +68,8 @@ export const checkUserSession = (body) => async dispatch => {
             });
 
             dispatch({
-                type:'APPOINTMENT_LOADED',
-                payload:res.data.appointments
+                type: 'APPOINTMENT_LOADED',
+                payload: res.data.appointments
             });
 
 
@@ -82,6 +93,10 @@ export const checkUserSession = (body) => async dispatch => {
             // }
 
         } else {
+            dispatch({
+                type: 'CATEGORY_LOADED',
+                payload: res.data.categories
+            })
             history.push('/');
         }
 
@@ -238,8 +253,8 @@ export const login = (body) => async dispatch => {
             localStorage.setItem('token', res.data.token);
 
             dispatch({
-                type:'APPOINTMENT_LOADED',
-                payload:res.data.appointments
+                type: 'APPOINTMENT_LOADED',
+                payload: res.data.appointments
             });
 
             dispatch({

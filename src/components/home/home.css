@@ -1,11 +1,38 @@
 .category-card{
     width:200px;
     height: 200px;
-    background-color: white;
+    background-color:#f2fffd;
     box-shadow: 2px 2px 2px 2px #e4e4e4;
     margin:10px;
     padding:10px;
 }
+
+.appointments-box{
+background-color: white;
+padding:5px;
+float: right;
+}
+
+#categoriex-box{
+    padding-top: 20px;
+}
+
+.carousel .slide{
+    background:transparent !important;
+}
+.carousel + .carousel{
+    display: none;
+}
+
+.carousel{
+    height:300px;
+}
+
+.category-card .def-btn{   
+    border-radius: 10px;
+    background-color: #bcf0ff;
+}
+
 .category-card img{
     max-height: 110px;
     width:auto;

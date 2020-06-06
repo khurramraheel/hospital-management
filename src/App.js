@@ -14,7 +14,13 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import 'react-confirm-alert/src/react-confirm-alert.css'; // Import css
 
+import About from './components/about/about';
+
 import Patients from './components/patients/patients';
+
+import Contact from './components/contact/contact';
+
+import {loadCategory} from './store/actions/category';
 
 let checkedSession;
 
@@ -23,10 +29,12 @@ class App extends React.Component {
   // useEffect(() => {
   componentDidMount = () => {
 
-    if (!checkedSession && this.props.store.auth.token) {
+    if (!checkedSession && this.props.store.auth.token != null) {
       checkedSession = true;
       this.props.checkUserSession(this.props.store.auth.token);
 
+    } else {
+      loadCategory({noToast:true});
     }
   }
 
@@ -37,6 +45,10 @@ class App extends React.Component {
       <div className="App">
 
         <Header />
+
+        <Route path="/contact" exact component={Contact} />
+
+        <Route path="/about/:id" component={About} />
         <Route path="/" exact component={Home} />
         <Route path="/patients" exact component={Patients} />
 

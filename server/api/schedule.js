@@ -171,7 +171,7 @@ router.post('/confirm', async (req, res) => {
 
 router.post('/create', async (req, res) => {
 
-    try {
+    try {        
 
         let appointment = new Appointment({ ...req.body, appointID: Math.random().toString(36).substr(2, 9) });
         await appointment.save();

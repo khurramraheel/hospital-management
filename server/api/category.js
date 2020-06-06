@@ -20,13 +20,21 @@ router.get('/getall', (req, res) => {
 
 });
 
+router.get('/get_doctor', (req, res) => {
+
+    User.findById(req.query.id).populate('category').exec((err, doctor) => {
+        res.json(err || doctor)
+    });
+
+});
+
 router.post('/load_doctors/:category', (req, res) => {
 
     User.find({ category: req.params.category, type: "doctor" }, (err, doctors) => {
 
         res.json(doctors);
 
-     });
+    });
 
 });
 router.delete('/delete/:id', (req, res) => {

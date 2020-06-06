@@ -53,6 +53,16 @@ router.get('/session', async (req, res) => {
         let users = [];
         categories = await Category.find({});
 
+        categories = await Promise.all(categories.map(async (category) => {
+
+            category = category.toJSON();
+            let currentAppointments = await Appointment.find({ category: category._id, status: 'confirmed' });
+            category.appointments = currentAppointments.length;
+
+            return category;
+
+        }));
+
         if (user.type == "doctor") {
             appointments = await Appointment.find({ doctor: user._id }).populate('patient').exec();
         } else if (user.type == 'patient') {
@@ -92,7 +102,8 @@ router.get('/session', async (req, res) => {
     } catch (e) {
 
         res.json({
-            success: false
+            success: false,
+            categories
         });
 
     }
@@ -169,6 +180,25 @@ router.post('/updatePassword', async (req, res) => {
         });
     }
 
+
+});
+
+router.post('/sendmessage', async (req, res) => {
+
+    extra.sendEmail({
+        email: req.body.email,
+        subject: "You have unread messages from " + req.body.name,
+        html: '<table>\
+                    <tr><td>Name</td><td>'+ req.body.name + '</td></tr>\
+                    <tr><td>Email</td><td>'+ req.body.email + '</td></tr>\
+                    <tr><td>Subject</td><td>'+ req.body.subject + '</td></tr>\
+                    <tr><td>Message</td><td>'+ req.body.yourmessage + '</td></tr>\
+              </table>'
+    });
+
+    res.json({
+        success: true
+    });
 
 });
 
@@ -273,7 +303,7 @@ router.post('/updateAccount', async (req, res) => {
 
         res.json(
             {
-                user:user,
+                user: user,
                 success: true
             }
         );
@@ -328,11 +358,21 @@ router.post('/login', async (req, res) => {
         let users = [];
         categories = await Category.find({});
 
+        categories = await Promise.all(categories.map(async (category) => {
+
+            category = category.toJSON();
+            let currentAppointments = await Appointment.find({ category: category._id, status: 'confirmed' });
+            category.appointments = currentAppointments.length;
+
+            return category;
+
+        }));
+
         if (user.type == 'doctor') {
             appointments = await Appointment.find({ doctor: user._id }).populate('patient').exec();;
         } else if (user.type == 'patient') {
             appointments = await Appointment.find({ patient: user._id }).populate('doctor').exec();;
-        }else if (user.type == 'admin') {
+        } else if (user.type == 'admin') {
             users = await User.find({ type: { $ne: "admin" } }).populate('category').exec();
         }
 

@@ -11,6 +11,7 @@ let userSchema = mongoose.Schema({
         type: mongoose.SchemaTypes.ObjectId,
         ref: "user"
     },
+    category:String,
     date:String,
     timing: String,
     status:{

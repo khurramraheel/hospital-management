@@ -3,16 +3,15 @@ import React, { useState, useEffect } from 'react';
 import './appointment.css';
 import { login, requestNewPassword } from './../../store/actions/auth';
 import { connect } from 'react-redux';
-import M from 'materialize-css';
+import M from 'materialize-css';    
 import { useForm } from 'react-hook-form';
 import { createSchedule, getSchedule } from './../../store/actions/schedules';
-
+import {Link} from 'react-router-dom';
 import $ from 'jquery';
 
 import { loadDoctorsByCategory } from './../../store/actions/category';
 import history from './../../history';
 import { toast } from 'react-toastify';
-
 
 function ConfirmDialog(props) {
 
@@ -46,7 +45,8 @@ function ConfirmDialog(props) {
                     doctor: props.data.doctor._id,
                     patientSymptoms: props.data.symptoms,
                     date: date.toDateString(),
-                    patient: props.store.auth.user._id
+                    patient: props.store.auth.user._id,
+                    category:props.data.doctor.category._id
                 });
 
 
@@ -278,6 +278,9 @@ function Login(props) {
 
                                     setSelectedDoctor(doctor);
                                 }}>Select</button></td>
+                                <td>
+                                    <Link to={'/about/'+doctor._id} class="def-btn">Details</Link>
+                                </td>
                             </tr>
                         })
                     }

@@ -34,13 +34,14 @@ function Header(props) {
 
         <nav class="red" style={{ "padding": "0px 10px", "position": "fixed" }}>
             <div class="nav-wrapper">
-                <Link to='/' class="brand-logo">MediCare+</Link>
+                <Link to='/' class="brand-logo">Doctor Appointment System</Link>
 
                 <a href="#" class="sidenav-trigger" data-target="mobile-nav">
                     <i class="material-icons">menu</i>
                 </a>
 
                 <ul class="right hide-on-med-and-down "  >
+                    <li><Link to='/contact'>Contact Us</Link></li>
 
                     {!props.store.auth.user._id ?
                         <li onClick={() => {
@@ -53,6 +54,7 @@ function Header(props) {
                             {/* <li className="loggedin-name">
                                 <Link to="/write">New Story</Link>
                             </li> */}
+
 
                             {props.store.auth.user.type == "doctor" &&
                                 <>

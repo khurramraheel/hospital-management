@@ -1,0 +1,26 @@
+#contact-component{
+    width:50vw;
+    margin: auto;
+}
+
+#contact-component .contact-title{
+    font-size: 2em;
+}
+
+
+#contact-component #yourmessage{
+    height:100px;
+}
+
+#contact-component .ct-icon{
+    width:100px;
+}
+
+#contact-component .waitingWindow{
+    height: 200px;
+} 
+
+#contact-component .waitingWindow .waitIcon div{
+    position: relative;
+    top:0;
+}
