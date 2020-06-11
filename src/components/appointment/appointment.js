@@ -46,7 +46,7 @@ function ConfirmDialog(props) {
                     patientSymptoms: props.data.symptoms,
                     date: date.toDateString(),
                     patient: props.store.auth.user._id,
-                    category:props.data.doctor.category._id
+                    category: typeof props.data.doctor.category == "string" ? props.data.doctor.category : props.data.doctor.category._id
                 });
 
 

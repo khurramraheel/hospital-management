@@ -103,7 +103,7 @@ router.get('/session', async (req, res) => {
 
         res.json({
             success: false,
-            categories
+                
         });
 
     }

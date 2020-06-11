@@ -31,6 +31,8 @@ app.use((err, req, res, next) => {
     console.log(err);
 });
 
-app.listen(5000, () => {
+app.use(express.static('./build'));
+
+app.listen( process.env.PORT  || 5000, () => {
     console.log("Server started");
 });
