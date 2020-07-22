@@ -4,7 +4,7 @@ let express = require('express');
 
 let router = express();
 let User = require('./../models/user');
-// let Message = require('./../models/message');
+let Message = require('./../models/messageList');
 var jwtSimple = require('jwt-simple');
 
 let Appointment = require('./../models/appointment');
@@ -20,6 +20,30 @@ const bcrypt = require('bcryptjs');
 let nodemailer = require('nodemailer');
 
 // let liveSockets = reqyure('./liveSockets');
+
+router.post('/loadmessages', async (req, res) => {
+
+    try {
+
+        let messages = await Message.find({
+            author: req.body.author,
+            receiver: req.body.receiver
+        });
+
+        res.json({
+            success: true,
+            messages: messages
+        });
+
+    } catch (e) {
+
+        res.send(500, {
+            error: e.message
+        });
+
+    }
+
+});
 
 router.get('/session', async (req, res) => {
 
@@ -63,13 +87,38 @@ router.get('/session', async (req, res) => {
 
         }));
 
+        let targetUsers = [];
+
         if (user.type == "doctor") {
             appointments = await Appointment.find({ doctor: user._id }).populate('patient').exec();
+
+            let users = await User.find({ type: 'patient' });
+
+            await Promise.all(users.map(async (patient) => {
+                
+                let messages = await Message.find({
+                    $or: [
+                        { receiver: user._id,            author: patient._id },
+                        { receiver: patient._id , author: user._id }
+                    ]
+                });
+
+                if (messages.length > 0) {
+                    let cPatient = patient.toJSON();
+                    cPatient.messages = messages;
+                    targetUsers.push(cPatient);
+                }
+                return patient;
+            }));
+
         } else if (user.type == 'patient') {
             appointments = await Appointment.find({ patient: user._id }).populate('doctor').exec();
         } else if (user.type == 'admin') {
             users = await User.find({ type: { $ne: "admin" } }).populate('category').exec();
         }
+
+        // user = user.toJSON();
+        user.targetUsers = targetUsers;
 
         const payload = {
             user: {
@@ -103,7 +152,7 @@ router.get('/session', async (req, res) => {
 
         res.json({
             success: false,
-                
+
         });
 
     }
@@ -368,8 +417,20 @@ router.post('/login', async (req, res) => {
 
         }));
 
+        let targetUsers = [];
+
         if (user.type == 'doctor') {
-            appointments = await Appointment.find({ doctor: user._id }).populate('patient').exec();;
+            appointments = await Appointment.find({ doctor: user._id }).populate('patient').exec();
+
+            let users = await User.find({ type: 'patient' });
+
+            targetUsers = await Promise.all(users.filter((patient) => {
+
+                let messages = Message.find({ receiver: user._id, author: patient._id });
+                return messages.length > 0;
+
+            }))
+
         } else if (user.type == 'patient') {
             appointments = await Appointment.find({ patient: user._id }).populate('doctor').exec();;
         } else if (user.type == 'admin') {
@@ -390,6 +451,8 @@ router.post('/login', async (req, res) => {
         }
 
         cUser = user.toJSON();
+
+        user.targetUsers = targetUsers;
 
         delete cUser.password;
 

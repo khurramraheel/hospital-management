@@ -47,7 +47,7 @@ export const getDoctorByID = (payload) => {
 
 export const loadDoctorsByCategory = (payload) => {
 
-    return axios.post('/api/category/load_doctors/' + payload);
+    return axios.post('/api/category/load_doctors/' + payload.id, payload);
 
 }
 

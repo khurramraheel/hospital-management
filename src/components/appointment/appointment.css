@@ -7,6 +7,15 @@
     margin-bottom: 50px;
     padding-bottom: 35px;
 }
+
+#appointmentComponen #sc-launcher{
+    background-color: transparent;
+}
+
+#appointmentComponent .sc-open-icon, #appointmentComponent .sc-closed-icon{
+    visibility: hidden;
+}
+
 #appointmentComponent table thead{
     background-color: #d1dfff;
 }

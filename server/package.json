@@ -16,6 +16,8 @@
     "jwt-simple": "^0.5.6",
     "moment": "^2.26.0",
     "mongoose": "^5.9.18",
-    "nodemailer": "^6.4.8"
+    "nodemailer": "^6.4.8",
+    "socket.io": "^2.3.0",
+    "socketio-jwt": "^4.6.2"
   }
 }

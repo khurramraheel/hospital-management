@@ -2,13 +2,17 @@ import React from 'react';
 import './dashboard.css';
 import { connect } from 'react-redux';
 import M from 'materialize-css';
-import { updateAccount } from './../../store/actions/auth';
+import { updateAccount, loadChatMessages } from './../../store/actions/auth';
 import { toast } from 'react-toastify';
 import { saveCategory, deleteCategory, updateCategory } from './../../store/actions/category';
 import { confirmAppointment } from './../../store/actions/schedules';
 import { confirmAlert } from 'react-confirm-alert'; // Import
 import { useForm } from 'react-hook-form';
 import CategoryAdded from './../category-added/add-category';
+import { Launcher } from 'react-chat-window';
+import socketIOClient from "socket.io-client";
+import store from './../../store/store';
+
 
 function AAppointmentCancellation(props) {
 
@@ -19,7 +23,7 @@ function AAppointmentCancellation(props) {
         <div className="modal-content">
             <form onSubmit={handleSubmit((data) => {
 
-                props.confirmAppointment({ ...props.appointment, ...data, status: "cancelled", actionBy:props.actionBy });
+                props.confirmAppointment({ ...props.appointment, ...data, status: "cancelled", actionBy: props.actionBy });
 
             })}>
                 <div class="row">
@@ -48,12 +52,94 @@ let AppointmentCancellation = connect((store) => {
 
 }, { confirmAppointment })(AAppointmentCancellation);
 
+let socket;
+
+
 class Dashboard extends React.Component {
 
     state = {
+        selectedPatient: {},
+        messageList: [],
+        isOpen: false,
+        endpoint: 'http://localhost:5000',
         category: {},
         appointment: {},
-        cancellingAppointment: false,
+        cancellingAppointment: false
+    }
+
+    componentWillUnmount = () => {
+
+        if (socket) {
+            socket.off('authenticated', this.onAuthenticated);
+            socket.off('sent_mess_pro_members', this.sendMessageToMembers);
+            socket.off('message_read', this.onMessageRead);
+        }
+
+    }
+
+    onMessageRead = (data) => {
+
+        let patients = this.props.store.auth.user.targetUsers;
+
+        for (let item of patients) {
+            if (data.author == item._id) {
+                item.messages.forEach((message)=>{
+                    (message.readBy.indexOf(this.props.store.auth.user._id) == -1) && message.readBy.push(this.props.store.auth.user._id);
+                });
+                break;
+            }
+        }
+
+        store.dispatch({
+            type:'UPDATED_PATIENT_DATA'
+        })
+
+        // this.state.student.project.messageList.forEach((message) => {
+        //     message.readBy = data.readBy;
+        // });
+
+        // this.setState({
+        //     student: { ... this.state.student }
+        // });
+
+    }
+    updateThroughSocket = (messages) => {
+
+        messages.forEach((message) => {
+
+            message.userID = this.props.store.auth.user._id;
+            socket.emit('update_read', message);
+
+        });
+
+    }
+
+    sendMessageToMembers = (data) => {
+        this.state.readSent = false;
+
+        if (data.author == this.props.store.auth.user._id) {
+            data.author = "me";
+        }
+
+        let patients = this.props.store.auth.user.targetUsers;
+
+        for (let item of patients) {
+            if (data.author == item._id) {
+                !data.readBy && (data.readBy = []);
+                item.messages.push(data);
+                break;
+            }
+        }
+
+        store.dispatch({
+            type:'UPDATED_PATIENT_DATA'
+        })
+
+        // outerMessgeList = [...outerMessgeList, data];
+
+        // let user = this.props.store.auth.loggedUser.user;
+        // setMessageList(outerMessgeList);
+        this.setState({ messageList: [...this.state.messageList, data] });
     }
 
     componentDidMount = () => {
@@ -70,9 +156,29 @@ class Dashboard extends React.Component {
         M.Tabs.init(this.refs.patientAccountTab);
         M.Tabs.init(this.refs.adminAccountTab);
 
+        if (this.props.store.auth.user._id && !socket) {
+            socket = socketIOClient(this.state.endpoint);
+            socket.on('authenticated', this.onAuthenticated).emit('authenticate', { token: this.props.store.auth.token }); //send the jwt
+        }
+
     }
 
+    onAuthenticated = () => {
+
+
+        socket.emit('join_chat', {
+            type: this.props.store.auth.user.type,
+            userID: this.props.store.auth.user._id
+        });
+
+        socket.on('sent_mess_pro_members', this.sendMessageToMembers);
+        socket.on('message_read', this.onMessageRead);
+    }
+
+
     render = () => {
+
+        let user = this.props.store.auth.user;
 
         return <div id="dashboardComponent">
 
@@ -305,6 +411,22 @@ class Dashboard extends React.Component {
                 this.props.store.auth.user.type == "patient" && <div id="patient-panel">
 
 
+                    {/* <Launcher
+                        agentProfile={{
+                            teamName: 'Doctor Chat',
+                            imageUrl: 'https://a.slack-edge.com/66f9/img/avatars-teams/ava_0001-34.png'
+                        }}
+                        onMessageWasSent={(message) => {
+
+                            message.author = user._id;
+
+                            socket.emit('sent_message_all', message);
+
+                        }}
+                        messageList={this.state.messageList}
+                        showEmoji
+                    /> */}
+
                     <ul class="tabs" ref="patientAccountTab">
                         <li class="tab col s3"><a class="active" href="#requestedAppointmentsPatient">Requested Appointments</a></li>
                         <li class="tab col s3"><a href="#bookAppointmentsPatients">Booked Appointments</a></li>
@@ -459,10 +581,87 @@ class Dashboard extends React.Component {
 
 
                     <ul class="tabs" ref="doctorAccountTab">
-                        <li class="tab col s3"><a class="active" href="#newAppointmentsDoctor">New Appointments</a></li>
+                        <li class="tab col s3"><a class="active" href="#chatDoctor">Chat</a></li>
+                        <li class="tab col s3"><a href="#newAppointmentsDoctor">New Appointments</a></li>
                         <li class="tab col s3"><a href="#bookAppointmentsDoctor">Booked Appointments</a></li>
                         <li class="tab col s3"><a href="#historyDoctor">History</a></li>
                     </ul>
+
+                    <div id="chatDoctor">
+                        <Launcher
+                            handleClick={() => {
+                                this.setState({
+                                    isOpen: !this.state.isOpen
+                                });
+                            }}
+                            isOpen={this.state.isOpen}
+                            agentProfile={{
+                                teamName: 'react-chat-window',
+                                imageUrl: 'https://a.slack-edge.com/66f9/img/avatars-teams/ava_0001-34.png'
+                            }}
+                            onMessageWasSent={(message) => {
+
+                                message.author = user._id;
+                                message.receiver = this.state.selectedPatient._id;
+
+                                socket.emit('sent_message_all', message);
+
+                            }}
+                            messageList={this.state.messageList}
+                            showEmoji
+                        />
+                        <table>
+                            <thead>
+                                <th>Name</th>
+                                <th>Messages</th>
+                            </thead>
+                            <tbody>
+                                {
+                                    (this.props.store.auth.user.targetUsers || []).map((patient) => {
+
+                                        user.freshMessages = patient.messages.filter((message) => {
+
+                                            let result = message.readBy.indexOf(user._id) == -1;
+                                            return result;
+            
+                                        });
+
+
+                                        if (this.state.isOpen && !this.state.readSent) {
+                                            this.state.readSent = true;
+                                            this.updateThroughSocket(user.freshMessages);
+                                        }
+
+                                        return <tr>
+                                            <td>{patient.name}</td>
+                                            <td>
+                                                <span className="bubble-message" onClick={() => {
+
+                                                    this.setState({
+                                                        isOpen: !this.state.isOpen,
+                                                        selectedPatient: patient
+                                                    });
+
+                                                    patient.messages.forEach((message) => {
+                                                        if (message.author == this.props.store.auth.user._id) {
+                                                            message.author = "me";
+                                                        }
+                                                    });
+
+                                                    this.setState({
+                                                        messageList: patient.messages
+                                                    });
+
+                                                }}>{patient.messages.filter((message) => {
+                                                    return message.readBy.indexOf(this.props.store.auth.user._id) == -1;
+                                                }).length}</span>
+                                            </td>
+                                        </tr>
+                                    })
+                                }
+                            </tbody>
+                        </table>
+                    </div>
 
                     <div id="newAppointmentsDoctor">
                         <table>

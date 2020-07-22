@@ -1,5 +1,6 @@
 let Category = require('./../models/category');
 let User = require('./../models/user');
+let Message = require('./../models/messageList');
 let router = require('express').Router();
 
 router.post('/create', (req, res) => {
@@ -30,9 +31,23 @@ router.get('/get_doctor', (req, res) => {
 
 router.post('/load_doctors/:category', (req, res) => {
 
-    User.find({ category: req.params.category, type: "doctor" }, (err, doctors) => {
+    User.find({ category: req.params.category, type: "doctor" }, async (err, doctors) => {
 
-        res.json(doctors);
+        let cDoctors = await Promise.all(doctors.map(async (doctor) => {
+
+            let cDoctor = doctor.toJSON();
+
+            cDoctor.messages = await Message.find({
+                $or: [
+                    { receiver: doctor._id, author: req.body.patientID },
+                    { receiver: req.body.patientID, author: doctor._id }
+                ]
+            });
+            return cDoctor;
+
+        }));
+
+        res.json(cDoctors);
 
     });
 

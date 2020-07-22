@@ -1,3 +1,8 @@
 #dashboardComponent .category-thumb{
     width:100px;
 }
+
+#dashboardComponent .sc-launcher{
+    visibility: hidden;
+}
+

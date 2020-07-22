@@ -49,7 +49,7 @@ function Home(props) {
         <div id="categoriex-box" className="flex">
 
             {
-                props.store.auth.categories.map((category) => {
+                (props.store.auth.categories || []).map((category) => {
                     return <div className="category-card">
                         <div>
                             <img src={category.profilePic} />
@@ -60,7 +60,10 @@ function Home(props) {
                         <div className='text-left'>
                             <a href='#' onClick={() => {
 
-                                loadDoctorsByCategory(category._id).then((res) => {
+                                loadDoctorsByCategory({
+                                    id: category._id,
+                                    userID: props.store.auth.user._id
+                                }).then((res) => {
                                     store.dispatch({
                                         type: "DOCTORS_LOADED",
                                         payload: res.data

@@ -1,17 +1,21 @@
 import React, { useState, useEffect } from 'react';
 
 import './appointment.css';
-import { login, requestNewPassword } from './../../store/actions/auth';
+import { login, requestNewPassword, loadMessages } from './../../store/actions/auth';
 import { connect } from 'react-redux';
-import M from 'materialize-css';    
+import M from 'materialize-css';
 import { useForm } from 'react-hook-form';
 import { createSchedule, getSchedule } from './../../store/actions/schedules';
-import {Link} from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import $ from 'jquery';
+import { Launcher } from 'react-chat-window';
 
 import { loadDoctorsByCategory } from './../../store/actions/category';
 import history from './../../history';
 import { toast } from 'react-toastify';
+import socketIOClient from "socket.io-client";
+
+let outerMessgeList = [];
 
 function ConfirmDialog(props) {
 
@@ -68,14 +72,18 @@ let date = null;
 
 let alreadyLoaded = false;
 
+let socket;
+
+
 function Login(props) {
 
+    let sentMessages = false;
     let [doctors, setDoctors] = useState([]);
 
     let searchedCategory = props.location.search.split('=');
 
     let cCategory = null;
-    debugger;
+    // debugger;
 
     // searchedCategory && searchedCategory[1] && !alreadyLoaded) {
 
@@ -97,6 +105,8 @@ function Login(props) {
     //     });
     // }
 
+    let [openChat, setOpenChat] = useState(false);
+    let [messageList, setMessageList] = useState([]);
 
     let [timing, setTiming] = useState("");
     // let [date, setDate] = useState("");
@@ -107,37 +117,46 @@ function Login(props) {
 
 
     let [selectedDoctor, setSelectedDoctor] = useState({});
+    // let [loadedMessages, setLoadedMessages] = useState();
 
-    // const [formData, setFormData] = useState({
+    function sendMessageToMembers(data) {
 
-    //     email: '',
-    //     password: ''
-    // })
-    // const {  email, password } = formData;
-    // const onChange = e => setFormData({ ...formData, [e.target.name]: e.target.value })
-    // const onSubmit = e => {
-    //     e.preventDefault();
+        sentMessages = false;
 
-    //         console.log("Success")
-    // }
+        if (data.author == props.store.auth.user._id) {
+            data.author = "me";
+        }
 
-    // const { register, handleSubmit, errors } = useForm();
-    // const data = useForm();
+        outerMessgeList = [...outerMessgeList, data];
 
-    // const register1 = data.register;
-    // const handleSubmit1 = data.handleSubmit;
-    // const errors1 = data.errors;
+        // let user = this.props.store.auth.loggedUser.user;
+        setMessageList(outerMessgeList);
 
-    // let [forgetPassword, setForgetPassword] = useState();
+    }
 
-    // const onSubmit = data => {
-    //     // registerHandler(data)
-    //     console.log(data)
+    function onMessageRead(data) {
 
-    //     props.login(data);
+    }
 
-    // }
+    function onAuthenticated() {
 
+        socket.emit('join_chat', {
+            type: props.store.auth.user.type,
+            userID: props.store.auth.user._id
+        });
+
+        socket.on('sent_mess_pro_members', sendMessageToMembers);
+        socket.on('message_read', onMessageRead);
+
+    }
+
+    if (!socket && props.store.auth.user._id) {
+        socket = socketIOClient('http://localhost:5000');
+        socket.on('authenticated', onAuthenticated)
+            .emit('authenticate', {
+                token: props.store.auth.token
+            }); //send the jwt
+    }
 
     useEffect(() => {
 
@@ -221,22 +240,55 @@ function Login(props) {
 
     })
 
+    let user = props.store.auth.user;
+
+    function updateThroughSocket(messages) {
+
+        messages.forEach((message) => {
+
+            message.userID = this.props.store.auth.user._id;
+            socket.emit('update_read', message);
+
+        });
+
+    }
 
     return <div id="appointmentComponent" className="card">
+
+        <Launcher
+            handleClick={() => {
+                setOpenChat(!openChat);
+            }}
+            isOpen={openChat}
+            agentProfile={{
+                teamName: 'Doctor Chat',
+                imageUrl: 'https://a.slack-edge.com/66f9/img/avatars-teams/ava_0001-34.png'
+            }}
+            onMessageWasSent={(message) => {
+
+                message.author = user._id;
+                message.receiver = selectedDoctor._id;
+
+                socket.emit('sent_message_all', message);
+
+            }}
+            messageList={messageList}
+            showEmoji
+        />
 
         <div className="text-left">
             <label>Selected domain</label> <a id="dropdown-trigger-appointment" class='btn' href='#' data-target='category_picker_appointment'>{category}</a>
         </div>
         <ul id='category_picker_appointment' class='dropdown-content'>
             {
-                props.store.auth.categories.map((category) => {
+                (props.store.auth.categories || []).map((category) => {
                     return <li onClick={(evt) => {
 
                         setCategory(category.name);
 
                         // let selectedCategory = evt.target.innerText.trim();
 
-                        loadDoctorsByCategory(category._id).then((res) => {
+                        loadDoctorsByCategory({ id: category._id, patientID: props.store.auth.user._id }).then((res) => {
                             setDoctors(res.data);
                         });
 
@@ -279,7 +331,51 @@ function Login(props) {
                                     setSelectedDoctor(doctor);
                                 }}>Select</button></td>
                                 <td>
-                                    <Link to={'/about/'+doctor._id} class="def-btn">Details</Link>
+                                    <Link to={'/about/' + doctor._id} class="def-btn">Details</Link>
+                                </td>
+                                <td>
+                                    <button className="def-btn" onClick={() => {
+                                        setSelectedDoctor(doctor);
+                                        loadMessages({
+                                            author: props.store.auth.user._id,
+                                            receiver: doctor._id
+                                        }).then((res) => {
+
+
+                                            if (res.data.success) {
+                                                res.data.messages.forEach((message) => {
+                                                    if (message.author == props.store.auth.user._id) {
+                                                        message.author = "me";
+                                                    }
+                                                });
+                                                outerMessgeList = res.data.messages
+                                                setMessageList(outerMessgeList)
+                                            }
+
+                                        })
+                                        setOpenChat(true);
+                                    }}>Send Message</button>
+                                    <span onClick={() => {
+
+                                        setOpenChat(true);
+
+
+                                        let freshMessages =  doctor.messages.filter((message) => {
+                                            return message.readBy.indexOf(props.store.auth.user._id) == -1;
+                                        })
+
+                                        if (!sentMessages) {
+                                            sentMessages = true;
+                                            updateThroughSocket(freshMessages);
+                                        }
+
+                                    }} className="bubble-message">{
+
+                                            doctor.messages.filter((message) => {
+                                                return message.readBy.indexOf(props.store.auth.user._id) == -1;
+                                            }).length
+
+                                        }</span>
                                 </td>
                             </tr>
                         })

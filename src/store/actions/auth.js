@@ -12,8 +12,11 @@ export const getUser = (payload) => {
 
 }
 
+export const loadChatMessages = (payload) => { 
 
+    return axios.post('/api/auth/load_chat_messages', payload);
 
+}
 
 export const decodeJSONToken = (token) => {
 
@@ -35,7 +38,7 @@ export const checkUserSession = (body) => async dispatch => {
             let res = await axios.get('/api/category/getall');
             dispatch({
                 type: 'CATEGORY_LOADED',
-                payload:res.data
+                payload: res.data
             });
         } catch (e) {
 
@@ -200,7 +203,11 @@ export const updateAccount = (body) => async dispatch => {
     }
 }
 
+export const loadMessages = (payload) => {
 
+    return axios.post('/api/auth/loadmessages', payload);
+
+}
 
 export const checkPassExistence = (email) => {
 

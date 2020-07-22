@@ -120,6 +120,15 @@ html{
   height:100%;  
 }
 
+.bubble-message{
+  display: inline-block;
+  width:25px;
+  height: 25px;
+  border-radius: 25px;
+  background-color: orange;
+  text-align: center;
+}
+
 table thead{
   background-color: #ffead9;
 }
