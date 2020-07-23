@@ -74,6 +74,7 @@ let date = null;
 let alreadyLoaded = false;
 
 let socket;
+let wait = 0;
 // let cDoctors = [];
 
 function Login(props) {
@@ -160,301 +161,345 @@ function Login(props) {
         store.dispatch({
             type: 'UPDATE_DOCTORS'
         });
-    
 
-    // props.store.auth.doctors.filter((doctor) => {
 
-    //     if (data.author == doctor._id) {
-    //         d
-    //     }
+        // props.store.auth.doctors.filter((doctor) => {
 
-    // });
+        //     if (data.author == doctor._id) {
+        //         d
+        //     }
 
-}
+        // });
 
-function onMessageRead(data) {
+    }
 
-    outerMessgeList.forEach((message) => {
-        (props.store.auth.user._id != message.author) && (message.readBy.indexOf(props.store.auth.user._id) == -1) && (message.readBy.push(props.store.auth.user._id));
-    });
+    function onMessageRead(data) {
 
-    window.cDoctors.forEach((doctor) => {
+        outerMessgeList.forEach((message) => {
+            (props.store.auth.user._id != message.author) && (message.readBy.indexOf(props.store.auth.user._id) == -1) && (message.readBy.push(props.store.auth.user._id));
+        });
 
-        if (doctor._id == data.author) {
+        window.cDoctors.forEach((doctor) => {
 
-            doctor.messages.forEach((message) => {
-                (props.store.auth.user._id != message.author) && (message.readBy.indexOf(props.store.auth.user._id) == -1) && (message.readBy.push(props.store.auth.user._id));
-            });
+            if (doctor._id == data.author) {
 
+                doctor.messages.forEach((message) => {
+                    (props.store.auth.user._id != message.author) && (message.readBy.indexOf(props.store.auth.user._id) == -1) && (message.readBy.push(props.store.auth.user._id));
+                });
+
+
+            }
+
+        });
+
+        setMessageList(outerMessgeList);
+    }
+
+    let keyInterval = 0;
+
+    setTimeout(() => {
+        // debu gger;
+
+        if (!props.store.auth.user._id) {
+
+            keyInterval = setInterval(() => {
+
+                let state = store.getState();
+                console.log(state);
+                if (!state.auth.user._id) {
+                    return;
+                } else if (wait == 100) {
+                    wait = 0;
+                    clearInterval(keyInterval);
+                } else {
+                    clearInterval(keyInterval);
+                }
+
+                if (category) {
+
+                    let cCategory = state.auth.categories.find((item) => {
+                        return item.name == category
+                    });
+
+                    if (cCategory) {
+                        loadDoctorsByCategory({ id: cCategory._id, patientID: state.auth.user._id }).then((res) => {
+                            window.cDoctors = res.data;
+                            setDoctors(res.data);
+                        });
+                    }
+                }
+
+                wait++;
+
+            }, 10);
 
         }
 
-    });
-
-    setMessageList(outerMessgeList);
-}
+    }, 100);
 
 
+    if (!socket && props.store.auth.user._id) {
+        socket = socketIOClient('http://localhost:5000');
+        socket.on('authenticated', onAuthenticated)
+            .emit('authenticate', {
+                token: props.store.auth.token
+            }); //send the jwt
+    }
 
-if (!socket && props.store.auth.user._id) {
-    socket = socketIOClient('http://localhost:5000');
-    socket.on('authenticated', onAuthenticated)
-        .emit('authenticate', {
-            token: props.store.auth.token
-        }); //send the jwt
-}
+    useEffect(() => {
 
-useEffect(() => {
+        let slots = [
+            "9:00AM  - 10:00AM",
+            "10:00AM - 11:00AM",
+            "12:00AM - 1:00PM",
+            "1:00PM  - 2:00PM",
+            "2:00PM  - 3:00PM",
+            "3:00PM  - 4:00PM",
+            "4:00PM  - 5:00PM",
+        ];
 
-    let slots = [
-        "9:00AM  - 10:00AM",
-        "10:00AM - 11:00AM",
-        "12:00AM - 1:00PM",
-        "1:00PM  - 2:00PM",
-        "2:00PM  - 3:00PM",
-        "3:00PM  - 4:00PM",
-        "4:00PM  - 5:00PM",
-    ];
+        M.Dropdown.init(document.getElementById('dropdown-trigger-appointment'), {});
 
-    M.Dropdown.init(document.getElementById('dropdown-trigger-appointment'), {});
+        M.Datepicker.init(document.getElementById('appointment_datepicker'), {
+            onSelect: function (cdate) {
 
-    M.Datepicker.init(document.getElementById('appointment_datepicker'), {
-        onSelect: function (cdate) {
-
-            if (cdate) {
-                date = cdate;
-                // this.setDate(date);
-            }
+                if (cdate) {
+                    date = cdate;
+                    // this.setDate(date);
+                }
 
 
-            let sectionCode = $('<table class="striped appointment-table"><thead><th>Time Slot</th></thead><tbody></tbody></table><div style="padding:20px"><button id="proceed-appointment" class="def-btn">Process Appointment</button </div>');
+                let sectionCode = $('<table class="striped appointment-table"><thead><th>Time Slot</th></thead><tbody></tbody></table><div style="padding:20px"><button id="proceed-appointment" class="def-btn">Process Appointment</button </div>');
 
-            slots.forEach((slot) => {
+                slots.forEach((slot) => {
 
-                let selectSlotButton = '<p class="allow-events">\
+                    let selectSlotButton = '<p class="allow-events">\
                         <label>\
                             <input type="radio" name="slot-selector" data-slot="' + slot + '" class="slot-selector" />\
                             <span></span>\
                         </label</p>';
 
-                let slotFilled = schedules.find((schedule) => {
-                    return schedule.timing == slot && schedule.date == date.toDateString();
-                });
-
-
-                if (slotFilled) {
-                    selectSlotButton = '';
-                }
-
-                sectionCode.find('tbody').append('<tr><td>' + slot + '</td><td>' + selectSlotButton + '</td>></tr>');
-
-                sectionCode.find('.slot-selector:last').on('click', (evt) => {
-
-                    let slot = evt.target.getAttribute('data-slot');
-                    // alert(slot);
-                    // setTiming(slot);
-
-                });
-
-            });
-
-            let $modal = $('#appointmentComponent .datepicker-modal');
-
-            $modal.find('.appointment-table').remove();
-            $modal.find('#proceed-appointment').remove();
-            $modal.append(sectionCode);
-
-            $modal.find('#proceed-appointment').on('click', (evt) => {
-
-                if (!$('#appointmentComponent .slot-selector:checked').length) {
-                    return toast.error("Please select a timing slot");
-                }
-
-                M.Modal.init(document.getElementById('confirmModal'), {
-                    onOpenEnd: () => {
-
-                        $('#date-slot-confirm').text(date.toDateString());
-                        $('#timing-slot-confirm').text($('#appointmentComponent .slot-selector:checked').attr('data-slot'));
-
-                    }
-                }).open();
-
-            });
-
-        }
-    });
-
-})
-
-let user = props.store.auth.user;
-
-function updateThroughSocket(messages) {
-
-    messages.forEach((message) => {
-
-        message.userID = props.store.auth.user._id;
-        socket.emit('update_read', message);
-
-    });
-
-}
-
-return <div id="appointmentComponent" className="card">
-
-    <Launcher
-        handleClick={() => {
-            setOpenChat(!openChat);
-        }}
-        isOpen={openChat}
-        agentProfile={{
-            teamName: 'Doctor Chat',
-            imageUrl: 'https://a.slack-edge.com/66f9/img/avatars-teams/ava_0001-34.png'
-        }}
-        onMessageWasSent={(message) => {
-
-            message.author = user._id;
-            message.receiver = selectedDoctor._id;
-
-            socket.emit('sent_message_all', message);
-
-        }}
-        messageList={messageList}
-        showEmoji
-    />
-
-    <div className="text-left">
-        <label>Selected domain</label> <a id="dropdown-trigger-appointment" class='btn' href='#' data-target='category_picker_appointment'>{category}</a>
-    </div>
-    <ul id='category_picker_appointment' class='dropdown-content'>
-        {
-            (props.store.auth.categories || []).map((category) => {
-                return <li onClick={(evt) => {
-
-                    setCategory(category.name);
-
-                    // let selectedCategory = evt.target.innerText.trim();
-
-                    loadDoctorsByCategory({ id: category._id, patientID: props.store.auth.user._id }).then((res) => {
-                        setDoctors(res.data);
-                        window.cDoctors = res.data;
+                    let slotFilled = schedules.find((schedule) => {
+                        return schedule.timing == slot && schedule.date == date.toDateString();
                     });
 
 
-                }} data-id={category._id}>{
-                        category.name
-                    }</li>
-            })
-        }
-    </ul>
+                    if (slotFilled) {
+                        selectSlotButton = '';
+                    }
 
+                    sectionCode.find('tbody').append('<tr><td>' + slot + '</td><td>' + selectSlotButton + '</td>></tr>');
 
+                    sectionCode.find('.slot-selector:last').on('click', (evt) => {
 
-    {
-        (props.store.auth.doctors.length > 0 || window.cDoctors.length > 0) && <div className="text-left">
-            <h6 className="text-left">{props.store.auth.doctors.length || window.cDoctors.length} doctors avaiable!</h6>
-            <table className="striped">
-                <thead>
-                    <th>Doctor Pic</th>
-                    <th>Doctor Name</th>
-                    <th>Contact</th>
-                    <th>Email</th>
-                    <th></th>
-                </thead>
-                {
-                    (props.store.auth.doctors.length ? props.store.auth.doctors : window.cDoctors).map((doctor) => {
-                        return <tr style={{ backgroundColor: selectedDoctor == doctor ? "#efefef" : "" }}>
-                            <td><img className="doctor-thumb" src={doctor.profilePic} /></td>
-                            <td>{doctor.name}</td>
-                            <td>{doctor.contact}</td>
-                            <td>{doctor.email}</td>
-                            <td><button className="def-btn" onClick={() => {
+                        let slot = evt.target.getAttribute('data-slot');
+                        // alert(slot);
+                        // setTiming(slot);
 
-                                getSchedule(doctor._id).then((res) => {
+                    });
 
-                                    setSchedule(res.data.schedules);
+                });
 
-                                });
+                let $modal = $('#appointmentComponent .datepicker-modal');
 
-                                setSelectedDoctor(doctor);
-                            }}>Select</button></td>
-                            <td>
-                                <Link to={'/about/' + doctor._id} class="def-btn">Details</Link>
-                            </td>
-                            <td>
-                                <button className="def-btn" onClick={() => {
-                                    setSelectedDoctor(doctor);
-                                    loadMessages({
-                                        author: props.store.auth.user._id,
-                                        receiver: doctor._id
-                                    }).then((res) => {
+                $modal.find('.appointment-table').remove();
+                $modal.find('#proceed-appointment').remove();
+                $modal.append(sectionCode);
 
+                $modal.find('#proceed-appointment').on('click', (evt) => {
 
-                                        if (res.data.success) {
-                                            res.data.messages.forEach((message) => {
-                                                if (message.author == props.store.auth.user._id) {
-                                                    message.author = "me";
-                                                }
-                                            });
-                                            outerMessgeList = res.data.messages
-                                            setMessageList(outerMessgeList);
+                    if (!$('#appointmentComponent .slot-selector:checked').length) {
+                        return toast.error("Please select a timing slot");
+                    }
 
-                                            let freshMessages = outerMessgeList.filter((message) => {
-                                                return message.readBy.indexOf(props.store.auth.user._id) == -1;
-                                            })
+                    M.Modal.init(document.getElementById('confirmModal'), {
+                        onOpenEnd: () => {
 
-                                            if (!sentMessages) {
-                                                sentMessages = true;
-                                                updateThroughSocket(freshMessages);
-                                            }
-                                        }
+                            $('#date-slot-confirm').text(date.toDateString());
+                            $('#timing-slot-confirm').text($('#appointmentComponent .slot-selector:checked').attr('data-slot'));
 
-                                    })
-                                    setOpenChat(true);
-                                }}>Send Message</button>
-                                <span onClick={() => {
+                        }
+                    }).open();
 
-                                    // setOpenChat(true);
+                });
 
-                                    // outerMessgeList = doctor.messages;
-                                    // setMessageList(doctor.messages)
+            }
+        });
 
-                                    // let freshMessages =  outerMessgeList.filter((message) => {
-                                    //     return   message.readBy.indexOf(props.store.auth.user._id) == -1;
-                                    // })
+    })
 
-                                    // if (!sentMessages) {
-                                    //     sentMessages = true;
-                                    //     updateThroughSocket(freshMessages);
-                                    // }
+    let user = props.store.auth.user;
 
-                                }} className="bubble-message">{
+    function updateThroughSocket(messages) {
 
-                                        doctor.messages.filter((message) => {
-                                            return (message.author != "me" && message.author != props.store.auth.user._id) && message.readBy.indexOf(props.store.auth.user._id) == -1;
-                                        }).length
+        messages.forEach((message) => {
 
-                                    }</span>
-                            </td>
-                        </tr>
-                    })
-                }
-            </table>
-        </div>
+            message.userID = props.store.auth.user._id;
+            socket.emit('update_read', message);
+
+        });
+
     }
 
-    <div className="text-left">
-        <label>Symptoms</label>
-        <textarea className="height-100" onChange={(evt) => {
+    return <div id="appointmentComponent" className="card">
 
-            setSymptoms(evt.target.value);
+        <Launcher
+            handleClick={() => {
+                setOpenChat(!openChat);
+            }}
+            isOpen={openChat}
+            agentProfile={{
+                teamName: 'Doctor Chat',
+                imageUrl: 'https://a.slack-edge.com/66f9/img/avatars-teams/ava_0001-34.png'
+            }}
+            onMessageWasSent={(message) => {
 
-        }}></textarea>
-    </div>
-    {selectedDoctor._id && <div className="text-center">
-        <h6><label className="def-btn" for="appointment_datepicker">Request a schedule</label></h6>
-    </div>}
+                message.author = user._id;
+                message.receiver = selectedDoctor._id;
 
-    {/* <ul id='date_picker_appointment' class='dropdown-content'>
+                socket.emit('sent_message_all', message);
+
+            }}
+            messageList={messageList}
+            showEmoji
+        />
+
+        <div className="text-left">
+            <label>Selected domain</label> <a id="dropdown-trigger-appointment" class='btn' href='#' data-target='category_picker_appointment'>{category}</a>
+        </div>
+        <ul id='category_picker_appointment' class='dropdown-content'>
+
+            <>
+                {/* <li></li> */}
+                {([{ name: "Select Category" }]).concat(props.store.auth.categories || []).map((category) => {
+                    return <li onClick={(evt) => {
+
+                        setCategory(category.name);
+
+                        // let selectedCategory = evt.target.innerText.trim();
+
+                        loadDoctorsByCategory({ id: category._id, patientID: props.store.auth.user._id }).then((res) => {
+                            window.cDoctors = res.data;
+                            setDoctors(res.data);
+                        });
+
+
+                    }} data-id={category._id}>{
+                            category.name
+                        }</li>
+                })
+                }
+            </>
+        </ul>
+
+
+
+        {
+            (props.store.auth.doctors.length > 0 || window.cDoctors.length > 0) && <div className="text-left">
+                <h6 className="text-left">{props.store.auth.doctors.length || window.cDoctors.length} doctors avaiable!</h6>
+                <table className="striped">
+                    <thead>
+                        <th>Doctor Pic</th>
+                        <th>Doctor Name</th>
+                        <th>Contact</th>
+                        <th>Email</th>
+                        <th></th>
+                    </thead>
+                    {
+                        (props.store.auth.doctors.length ? props.store.auth.doctors : window.cDoctors).map((doctor) => {
+                            return <tr style={{ backgroundColor: selectedDoctor == doctor ? "#efefef" : "" }}>
+                                <td><img className="doctor-thumb" src={doctor.profilePic} /></td>
+                                <td>{doctor.name}</td>
+                                <td>{doctor.contact}</td>
+                                <td>{doctor.email}</td>
+                                <td><button className="def-btn" onClick={() => {
+
+                                    getSchedule(doctor._id).then((res) => {
+
+                                        setSchedule(res.data.schedules);
+
+                                    });
+
+                                    setSelectedDoctor(doctor);
+                                }}>Select</button></td>
+                                <td>
+                                    <Link to={'/about/' + doctor._id} class="def-btn">Details</Link>
+                                </td>
+                                <td>
+                                    <button className="def-btn" onClick={() => {
+                                        setSelectedDoctor(doctor);
+                                        loadMessages({
+                                            author: props.store.auth.user._id,
+                                            receiver: doctor._id
+                                        }).then((res) => {
+
+
+                                            if (res.data.success) {
+                                                res.data.messages.forEach((message) => {
+                                                    if (message.author == props.store.auth.user._id) {
+                                                        message.author = "me";
+                                                    }
+                                                });
+                                                outerMessgeList = res.data.messages
+                                                setMessageList(outerMessgeList);
+
+                                                let freshMessages = outerMessgeList.filter((message) => {
+                                                    return message.readBy.indexOf(props.store.auth.user._id) == -1;
+                                                })
+
+                                                if (!sentMessages) {
+                                                    sentMessages = true;
+                                                    updateThroughSocket(freshMessages);
+                                                }
+                                            }
+
+                                        })
+                                        setOpenChat(true);
+                                    }}>Send Message</button>
+                                    <span onClick={() => {
+
+                                        // setOpenChat(true);
+
+                                        // outerMessgeList = doctor.messages;
+                                        // setMessageList(doctor.messages)
+
+                                        // let freshMessages =  outerMessgeList.filter((message) => {
+                                        //     return   message.readBy.indexOf(props.store.auth.user._id) == -1;
+                                        // })
+
+                                        // if (!sentMessages) {
+                                        //     sentMessages = true;
+                                        //     updateThroughSocket(freshMessages);
+                                        // }
+
+                                    }} className="bubble-message">{
+
+                                            doctor.messages.filter((message) => {
+                                                return (message.author != "me" && message.author != props.store.auth.user._id) && message.readBy.indexOf(props.store.auth.user._id) == -1;
+                                            }).length
+
+                                        }</span>
+                                </td>
+                            </tr>
+                        })
+                    }
+                </table>
+            </div>
+        }
+
+        <div className="text-left">
+            <label>Symptoms</label>
+            <textarea className="height-100" onChange={(evt) => {
+
+                setSymptoms(evt.target.value);
+
+            }}></textarea>
+        </div>
+        {selectedDoctor._id && <div className="text-center">
+            <h6><label className="def-btn" for="appointment_datepicker">Request a schedule</label></h6>
+        </div>}
+
+        {/* <ul id='date_picker_appointment' class='dropdown-content'>
             {
                 props.store.auth.categories.map((category) => {
                     return <li onClick={(evt) => {
@@ -476,16 +521,16 @@ return <div id="appointmentComponent" className="card">
         </ul> */}
 
 
-    <div>
+        <div>
 
-        <input type="text" id="appointment_datepicker" hidden />
+            <input type="text" id="appointment_datepicker" hidden />
 
 
-    </div>
+        </div>
 
-    <ConfirmDialog data={{ doctor: selectedDoctor, category: category, symptoms: symptoms, date: date }} />
+        <ConfirmDialog data={{ doctor: selectedDoctor, category: category, symptoms: symptoms, date: date }} />
 
-</div >
+    </div >
 
 }
 
