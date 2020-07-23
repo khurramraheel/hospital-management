@@ -120,6 +120,10 @@ html{
   height:100%;  
 }
 
+.sc-launcher {
+  display: none;
+}
+
 .bubble-message{
   display: inline-block;
   width:25px;

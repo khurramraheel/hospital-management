@@ -25,9 +25,16 @@ router.post('/loadmessages', async (req, res) => {
 
     try {
 
+        // let messages = await Message.find({
+        //     author: req.body.author,
+        //     receiver: req.body.receiver
+        // });
+
         let messages = await Message.find({
-            author: req.body.author,
-            receiver: req.body.receiver
+            $or: [
+                { receiver: req.body.receiver, author: req.body.author},
+                { receiver:req.body.author, author:req.body.receiver}
+            ]
         });
 
         res.json({
@@ -95,11 +102,11 @@ router.get('/session', async (req, res) => {
             let users = await User.find({ type: 'patient' });
 
             await Promise.all(users.map(async (patient) => {
-                
+
                 let messages = await Message.find({
                     $or: [
-                        { receiver: user._id,            author: patient._id },
-                        { receiver: patient._id , author: user._id }
+                        { receiver: user._id, author: patient._id },
+                        { receiver: patient._id, author: user._id }
                     ]
                 });
 
@@ -424,12 +431,22 @@ router.post('/login', async (req, res) => {
 
             let users = await User.find({ type: 'patient' });
 
-            targetUsers = await Promise.all(users.filter((patient) => {
+            await Promise.all(users.map(async (patient) => {
 
-                let messages = Message.find({ receiver: user._id, author: patient._id });
-                return messages.length > 0;
+                let messages = await Message.find({
+                    $or: [
+                        { receiver: user._id, author: patient._id },
+                        { receiver: patient._id, author: user._id }
+                    ]
+                });
 
-            }))
+                if (messages.length > 0) {
+                    let cPatient = patient.toJSON();
+                    cPatient.messages = messages;
+                    targetUsers.push(cPatient);
+                }
+                return patient;
+            }));
 
         } else if (user.type == 'patient') {
             appointments = await Appointment.find({ patient: user._id }).populate('doctor').exec();;
@@ -452,7 +469,7 @@ router.post('/login', async (req, res) => {
 
         cUser = user.toJSON();
 
-        user.targetUsers = targetUsers;
+        cUser.targetUsers = targetUsers;
 
         delete cUser.password;
 

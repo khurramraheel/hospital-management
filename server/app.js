@@ -20,7 +20,7 @@ const server = require('http').Server(app);
 
 let io = require('socket.io')(server);
 
-io.eio.pingTimeout = 15000;
+io.eio.pingTimeout = 25000;
 
 app.use(function (req, res, next) {
     res.header('Access-Control-Allow-Origin', req.header('origin'));
@@ -50,28 +50,30 @@ io.sockets.on('connection', socketioJwt.authorize({
         socket.on('update_read', (data) => {
 
             try {
-              // Message.findByIdAndUpdate(data._id, { $push: { readBy: data.userID } }, { new: true }, (err, message) => {
-              Message.findByIdAndUpdate(data._id, { $addToSet: { readBy: data.userID } }, { new: true }, (err, message) => {
-      
-                socket.emit('message_read', { pID: data.pID, ...message.toJSON() });
-      
-              });
-      
-      
+                // Message.findByIdAndUpdate(data._id, { $push: { readBy: data.userID } }, { new: true }, (err, message) => {
+                Message.findByIdAndUpdate(data._id, { $addToSet: { readBy: data.userID } }, { new: true }, (err, message) => {
+
+                    socket.emit('message_read', { pID: data.pID, ...message.toJSON() });
+
+                });
+
+
             } catch (e) {
-      
-              // socket.emit('message')
-              console.log(e.message)
-      
+
+                // socket.emit('message')
+                console.log(e.message)
+
             }
-      
-          });
+
+        });
 
         socket.on('sent_message_all', async (data) => {
 
             data.readByAdmin = false;
 
             let message = new Message(data);
+
+            message.readBy = [data.author];
 
             await message.save();
 
@@ -82,11 +84,13 @@ io.sockets.on('connection', socketioJwt.authorize({
 
             for (let item in liveSockets) {
                 if (item == cMessage.receiver) {
-                    io.sockets.connected[liveSockets[item].socket].emit('sent_mess_pro_members', cMessage);
+                    if (io.sockets.connected[liveSockets[item].socket]) {
+                        io.sockets.connected[liveSockets[item].socket].emit('sent_mess_pro_members', cMessage);
+                    }
                 }
             }
 
-        
+
 
 
 

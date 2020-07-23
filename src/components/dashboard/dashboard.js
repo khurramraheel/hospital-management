@@ -79,11 +79,12 @@ class Dashboard extends React.Component {
 
     onMessageRead = (data) => {
 
+        this.state.readSent = false;
         let patients = this.props.store.auth.user.targetUsers;
 
         for (let item of patients) {
             if (data.author == item._id) {
-                item.messages.forEach((message)=>{
+                item.messages.forEach((message) => {
                     (message.readBy.indexOf(this.props.store.auth.user._id) == -1) && message.readBy.push(this.props.store.auth.user._id);
                 });
                 break;
@@ -91,7 +92,7 @@ class Dashboard extends React.Component {
         }
 
         store.dispatch({
-            type:'UPDATED_PATIENT_DATA'
+            type: 'UPDATED_PATIENT_DATA'
         })
 
         // this.state.student.project.messageList.forEach((message) => {
@@ -126,13 +127,16 @@ class Dashboard extends React.Component {
         for (let item of patients) {
             if (data.author == item._id) {
                 !data.readBy && (data.readBy = []);
+                if (this.state.isOpen) {
+                    data.readBy.push(this.props.store.auth.user._id);
+                }
                 item.messages.push(data);
                 break;
             }
         }
 
         store.dispatch({
-            type:'UPDATED_PATIENT_DATA'
+            type: 'UPDATED_PATIENT_DATA'
         })
 
         // outerMessgeList = [...outerMessgeList, data];
@@ -596,7 +600,7 @@ class Dashboard extends React.Component {
                             }}
                             isOpen={this.state.isOpen}
                             agentProfile={{
-                                teamName: 'react-chat-window',
+                                teamName: this.state.selectedPatient.name,
                                 imageUrl: 'https://a.slack-edge.com/66f9/img/avatars-teams/ava_0001-34.png'
                             }}
                             onMessageWasSent={(message) => {
@@ -619,18 +623,18 @@ class Dashboard extends React.Component {
                                 {
                                     (this.props.store.auth.user.targetUsers || []).map((patient) => {
 
-                                        user.freshMessages = patient.messages.filter((message) => {
+                                        // user.freshMessages = patient.messages.filter((message) => {
 
-                                            let result = message.readBy.indexOf(user._id) == -1;
-                                            return result;
-            
-                                        });
+                                        //     let result = message.readBy.indexOf(user._id) == -1;
+                                        //     return result;
+
+                                        // });
 
 
-                                        if (this.state.isOpen && !this.state.readSent) {
-                                            this.state.readSent = true;
-                                            this.updateThroughSocket(user.freshMessages);
-                                        }
+                                        // if (this.state.isOpen && !this.state.readSent) {
+                                        //     this.state.readSent = true;
+                                        //     this.updateThroughSocket(user.freshMessages);
+                                        // }
 
                                         return <tr>
                                             <td>{patient.name}</td>
@@ -648,12 +652,25 @@ class Dashboard extends React.Component {
                                                         }
                                                     });
 
+                                                    user.freshMessages = patient.messages.filter((message) => {
+
+                                                        let result = message.readBy.indexOf(user._id) == -1;
+                                                        return result;
+
+                                                    });
+
+
+                                                    if (!this.state.readSent) {
+                                                        this.state.readSent = true;
+                                                        this.updateThroughSocket(user.freshMessages);
+                                                    }
+
                                                     this.setState({
                                                         messageList: patient.messages
                                                     });
 
                                                 }}>{patient.messages.filter((message) => {
-                                                    return message.readBy.indexOf(this.props.store.auth.user._id) == -1;
+                                                    return (message.author!= this.props.store.auth.user._id) && message.readBy.indexOf(this.props.store.auth.user._id) == -1;
                                                 }).length}</span>
                                             </td>
                                         </tr>

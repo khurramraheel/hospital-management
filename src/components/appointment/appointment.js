@@ -73,12 +73,24 @@ let date = null;
 let alreadyLoaded = false;
 
 let socket;
-
+let cDoctors = [];
 
 function Login(props) {
 
     let sentMessages = false;
-    let [doctors, setDoctors] = useState([]);
+    let [doctors, setDoctors] = useState(props.store.auth.doctors);
+
+    let onAuthenticated = () => {
+
+        socket.emit('join_chat', {
+            type: props.store.auth.user.type,
+            userID: props.store.auth.user._id
+        });
+
+        socket.on('sent_mess_pro_members', sendMessageToMembers);
+        socket.on('message_read', onMessageRead);
+
+    }
 
     let searchedCategory = props.location.search.split('=');
 
@@ -119,9 +131,26 @@ function Login(props) {
     let [selectedDoctor, setSelectedDoctor] = useState({});
     // let [loadedMessages, setLoadedMessages] = useState();
 
-    function sendMessageToMembers(data) {
+    let sendMessageToMembers = (data) => {
 
         sentMessages = false;
+
+        if(!cDoctors.length){
+            cDoctors = props.store.auth.doctors;
+        }
+
+        let tDoctor = cDoctors.find((doctor) => {
+            return doctor._id == data.author
+        });
+
+        if (tDoctor) {
+
+            if(document.querySelector('.sc-chat-window.opened')){
+               (data.readBy.indexOf(props.store.auth.user._id) == -1) && data.readBy.push(props.store.auth.user._id);
+            }
+
+            tDoctor.messages.push(data);
+        }
 
         if (data.author == props.store.auth.user._id) {
             data.author = "me";
@@ -132,23 +161,39 @@ function Login(props) {
         // let user = this.props.store.auth.loggedUser.user;
         setMessageList(outerMessgeList);
 
+        // props.store.auth.doctors.filter((doctor) => {
+
+        //     if (data.author == doctor._id) {
+        //         d
+        //     }
+
+        // });
+
     }
 
     function onMessageRead(data) {
 
-    }
-
-    function onAuthenticated() {
-
-        socket.emit('join_chat', {
-            type: props.store.auth.user.type,
-            userID: props.store.auth.user._id
+        outerMessgeList.forEach((message) => {
+            (props.store.auth.user._id != message.author) && (message.readBy.indexOf(props.store.auth.user._id) == -1) && (message.readBy.push(props.store.auth.user._id));
         });
 
-        socket.on('sent_mess_pro_members', sendMessageToMembers);
-        socket.on('message_read', onMessageRead);
+        cDoctors.forEach((doctor) => {
 
+            if (doctor._id == data.author) {
+
+                doctor.messages.forEach((message) => {
+                    (props.store.auth.user._id != message.author) && (message.readBy.indexOf(props.store.auth.user._id) == -1) && (message.readBy.push(props.store.auth.user._id));
+                });
+
+
+            }
+
+        });
+
+        setMessageList(outerMessgeList);
     }
+
+
 
     if (!socket && props.store.auth.user._id) {
         socket = socketIOClient('http://localhost:5000');
@@ -246,7 +291,7 @@ function Login(props) {
 
         messages.forEach((message) => {
 
-            message.userID = this.props.store.auth.user._id;
+            message.userID = props.store.auth.user._id;
             socket.emit('update_read', message);
 
         });
@@ -290,6 +335,7 @@ function Login(props) {
 
                         loadDoctorsByCategory({ id: category._id, patientID: props.store.auth.user._id }).then((res) => {
                             setDoctors(res.data);
+                            cDoctors = res.data;
                         });
 
 
@@ -303,8 +349,8 @@ function Login(props) {
 
 
         {
-            (props.store.auth.doctors.length > 0 || doctors.length > 0) && <div className="text-left">
-                <h6 className="text-left">{props.store.auth.doctors.length || doctors.length} doctors avaiable!</h6>
+            (props.store.auth.doctors.length > 0 || cDoctors.length > 0) && <div className="text-left">
+                <h6 className="text-left">{props.store.auth.doctors.length || cDoctors.length} doctors avaiable!</h6>
                 <table className="striped">
                     <thead>
                         <th>Doctor Pic</th>
@@ -314,7 +360,7 @@ function Login(props) {
                         <th></th>
                     </thead>
                     {
-                        (props.store.auth.doctors.length ? props.store.auth.doctors : doctors).map((doctor) => {
+                        (props.store.auth.doctors.length ? props.store.auth.doctors : cDoctors).map((doctor) => {
                             return <tr style={{ backgroundColor: selectedDoctor == doctor ? "#efefef" : "" }}>
                                 <td><img className="doctor-thumb" src={doctor.profilePic} /></td>
                                 <td>{doctor.name}</td>
@@ -349,7 +395,16 @@ function Login(props) {
                                                     }
                                                 });
                                                 outerMessgeList = res.data.messages
-                                                setMessageList(outerMessgeList)
+                                                setMessageList(outerMessgeList);
+
+                                                let freshMessages = outerMessgeList.filter((message) => {
+                                                    return message.readBy.indexOf(props.store.auth.user._id) == -1;
+                                                })
+
+                                                if (!sentMessages) {
+                                                    sentMessages = true;
+                                                    updateThroughSocket(freshMessages);
+                                                }
                                             }
 
                                         })
@@ -357,22 +412,24 @@ function Login(props) {
                                     }}>Send Message</button>
                                     <span onClick={() => {
 
-                                        setOpenChat(true);
+                                        // setOpenChat(true);
 
+                                        // outerMessgeList = doctor.messages;
+                                        // setMessageList(doctor.messages)
 
-                                        let freshMessages =  doctor.messages.filter((message) => {
-                                            return message.readBy.indexOf(props.store.auth.user._id) == -1;
-                                        })
+                                        // let freshMessages =  outerMessgeList.filter((message) => {
+                                        //     return   message.readBy.indexOf(props.store.auth.user._id) == -1;
+                                        // })
 
-                                        if (!sentMessages) {
-                                            sentMessages = true;
-                                            updateThroughSocket(freshMessages);
-                                        }
+                                        // if (!sentMessages) {
+                                        //     sentMessages = true;
+                                        //     updateThroughSocket(freshMessages);
+                                        // }
 
                                     }} className="bubble-message">{
 
                                             doctor.messages.filter((message) => {
-                                                return message.readBy.indexOf(props.store.auth.user._id) == -1;
+                                                return (message.author != "me" && message.author != props.store.auth.user._id) && message.readBy.indexOf(props.store.auth.user._id) == -1;
                                             }).length
 
                                         }</span>
