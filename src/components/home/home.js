@@ -64,6 +64,9 @@ function Home(props) {
                                     id: category._id,
                                     userID: props.store.auth.user._id
                                 }).then((res) => {
+
+                                    window.cDoctors = res.data;
+
                                     store.dispatch({
                                         type: "DOCTORS_LOADED",
                                         payload: res.data

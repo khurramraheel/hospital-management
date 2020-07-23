@@ -28,6 +28,10 @@ export default (state = initialData, action) => {
 
     switch (action.type) {
 
+        case 'UPDATE_DOCTORS':
+            state.doctors = [...state.doctors];
+            break;
+
         case 'UPDATED_PATIENT_DATA':
             state.user = { ...state.user };
             break;

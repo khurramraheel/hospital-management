@@ -14,6 +14,7 @@ import { loadDoctorsByCategory } from './../../store/actions/category';
 import history from './../../history';
 import { toast } from 'react-toastify';
 import socketIOClient from "socket.io-client";
+import store from './../../store/store';
 
 let outerMessgeList = [];
 
@@ -73,7 +74,7 @@ let date = null;
 let alreadyLoaded = false;
 
 let socket;
-let cDoctors = [];
+// let cDoctors = [];
 
 function Login(props) {
 
@@ -135,18 +136,14 @@ function Login(props) {
 
         sentMessages = false;
 
-        if(!cDoctors.length){
-            cDoctors = props.store.auth.doctors;
-        }
-
-        let tDoctor = cDoctors.find((doctor) => {
+        let tDoctor = window.cDoctors.find((doctor) => {
             return doctor._id == data.author
         });
 
         if (tDoctor) {
 
-            if(document.querySelector('.sc-chat-window.opened')){
-               (data.readBy.indexOf(props.store.auth.user._id) == -1) && data.readBy.push(props.store.auth.user._id);
+            if (document.querySelector('.sc-chat-window.opened')) {
+                (data.readBy.indexOf(props.store.auth.user._id) == -1) && data.readBy.push(props.store.auth.user._id);
             }
 
             tDoctor.messages.push(data);
@@ -160,300 +157,304 @@ function Login(props) {
 
         // let user = this.props.store.auth.loggedUser.user;
         setMessageList(outerMessgeList);
-
-        // props.store.auth.doctors.filter((doctor) => {
-
-        //     if (data.author == doctor._id) {
-        //         d
-        //     }
-
-        // });
-
-    }
-
-    function onMessageRead(data) {
-
-        outerMessgeList.forEach((message) => {
-            (props.store.auth.user._id != message.author) && (message.readBy.indexOf(props.store.auth.user._id) == -1) && (message.readBy.push(props.store.auth.user._id));
+        store.dispatch({
+            type: 'UPDATE_DOCTORS'
         });
+    
 
-        cDoctors.forEach((doctor) => {
+    // props.store.auth.doctors.filter((doctor) => {
 
-            if (doctor._id == data.author) {
+    //     if (data.author == doctor._id) {
+    //         d
+    //     }
 
-                doctor.messages.forEach((message) => {
-                    (props.store.auth.user._id != message.author) && (message.readBy.indexOf(props.store.auth.user._id) == -1) && (message.readBy.push(props.store.auth.user._id));
-                });
+    // });
+
+}
+
+function onMessageRead(data) {
+
+    outerMessgeList.forEach((message) => {
+        (props.store.auth.user._id != message.author) && (message.readBy.indexOf(props.store.auth.user._id) == -1) && (message.readBy.push(props.store.auth.user._id));
+    });
+
+    window.cDoctors.forEach((doctor) => {
+
+        if (doctor._id == data.author) {
+
+            doctor.messages.forEach((message) => {
+                (props.store.auth.user._id != message.author) && (message.readBy.indexOf(props.store.auth.user._id) == -1) && (message.readBy.push(props.store.auth.user._id));
+            });
 
 
+        }
+
+    });
+
+    setMessageList(outerMessgeList);
+}
+
+
+
+if (!socket && props.store.auth.user._id) {
+    socket = socketIOClient('http://localhost:5000');
+    socket.on('authenticated', onAuthenticated)
+        .emit('authenticate', {
+            token: props.store.auth.token
+        }); //send the jwt
+}
+
+useEffect(() => {
+
+    let slots = [
+        "9:00AM  - 10:00AM",
+        "10:00AM - 11:00AM",
+        "12:00AM - 1:00PM",
+        "1:00PM  - 2:00PM",
+        "2:00PM  - 3:00PM",
+        "3:00PM  - 4:00PM",
+        "4:00PM  - 5:00PM",
+    ];
+
+    M.Dropdown.init(document.getElementById('dropdown-trigger-appointment'), {});
+
+    M.Datepicker.init(document.getElementById('appointment_datepicker'), {
+        onSelect: function (cdate) {
+
+            if (cdate) {
+                date = cdate;
+                // this.setDate(date);
             }
 
-        });
 
-        setMessageList(outerMessgeList);
-    }
+            let sectionCode = $('<table class="striped appointment-table"><thead><th>Time Slot</th></thead><tbody></tbody></table><div style="padding:20px"><button id="proceed-appointment" class="def-btn">Process Appointment</button </div>');
 
+            slots.forEach((slot) => {
 
-
-    if (!socket && props.store.auth.user._id) {
-        socket = socketIOClient('http://localhost:5000');
-        socket.on('authenticated', onAuthenticated)
-            .emit('authenticate', {
-                token: props.store.auth.token
-            }); //send the jwt
-    }
-
-    useEffect(() => {
-
-        let slots = [
-            "9:00AM  - 10:00AM",
-            "10:00AM - 11:00AM",
-            "12:00AM - 1:00PM",
-            "1:00PM  - 2:00PM",
-            "2:00PM  - 3:00PM",
-            "3:00PM  - 4:00PM",
-            "4:00PM  - 5:00PM",
-        ];
-
-        M.Dropdown.init(document.getElementById('dropdown-trigger-appointment'), {});
-
-        M.Datepicker.init(document.getElementById('appointment_datepicker'), {
-            onSelect: function (cdate) {
-
-                if (cdate) {
-                    date = cdate;
-                    // this.setDate(date);
-                }
-
-
-                let sectionCode = $('<table class="striped appointment-table"><thead><th>Time Slot</th></thead><tbody></tbody></table><div style="padding:20px"><button id="proceed-appointment" class="def-btn">Process Appointment</button </div>');
-
-                slots.forEach((slot) => {
-
-                    let selectSlotButton = '<p class="allow-events">\
+                let selectSlotButton = '<p class="allow-events">\
                         <label>\
                             <input type="radio" name="slot-selector" data-slot="' + slot + '" class="slot-selector" />\
                             <span></span>\
                         </label</p>';
 
-                    let slotFilled = schedules.find((schedule) => {
-                        return schedule.timing == slot && schedule.date == date.toDateString();
-                    });
+                let slotFilled = schedules.find((schedule) => {
+                    return schedule.timing == slot && schedule.date == date.toDateString();
+                });
 
 
-                    if (slotFilled) {
-                        selectSlotButton = '';
-                    }
+                if (slotFilled) {
+                    selectSlotButton = '';
+                }
 
-                    sectionCode.find('tbody').append('<tr><td>' + slot + '</td><td>' + selectSlotButton + '</td>></tr>');
+                sectionCode.find('tbody').append('<tr><td>' + slot + '</td><td>' + selectSlotButton + '</td>></tr>');
 
-                    sectionCode.find('.slot-selector:last').on('click', (evt) => {
+                sectionCode.find('.slot-selector:last').on('click', (evt) => {
 
-                        let slot = evt.target.getAttribute('data-slot');
-                        // alert(slot);
-                        // setTiming(slot);
-
-                    });
+                    let slot = evt.target.getAttribute('data-slot');
+                    // alert(slot);
+                    // setTiming(slot);
 
                 });
 
-                let $modal = $('#appointmentComponent .datepicker-modal');
+            });
 
-                $modal.find('.appointment-table').remove();
-                $modal.find('#proceed-appointment').remove();
-                $modal.append(sectionCode);
+            let $modal = $('#appointmentComponent .datepicker-modal');
 
-                $modal.find('#proceed-appointment').on('click', (evt) => {
+            $modal.find('.appointment-table').remove();
+            $modal.find('#proceed-appointment').remove();
+            $modal.append(sectionCode);
 
-                    if (!$('#appointmentComponent .slot-selector:checked').length) {
-                        return toast.error("Please select a timing slot");
+            $modal.find('#proceed-appointment').on('click', (evt) => {
+
+                if (!$('#appointmentComponent .slot-selector:checked').length) {
+                    return toast.error("Please select a timing slot");
+                }
+
+                M.Modal.init(document.getElementById('confirmModal'), {
+                    onOpenEnd: () => {
+
+                        $('#date-slot-confirm').text(date.toDateString());
+                        $('#timing-slot-confirm').text($('#appointmentComponent .slot-selector:checked').attr('data-slot'));
+
                     }
+                }).open();
 
-                    M.Modal.init(document.getElementById('confirmModal'), {
-                        onOpenEnd: () => {
+            });
 
-                            $('#date-slot-confirm').text(date.toDateString());
-                            $('#timing-slot-confirm').text($('#appointmentComponent .slot-selector:checked').attr('data-slot'));
+        }
+    });
 
-                        }
-                    }).open();
+})
 
-                });
+let user = props.store.auth.user;
 
-            }
-        });
+function updateThroughSocket(messages) {
 
-    })
+    messages.forEach((message) => {
 
-    let user = props.store.auth.user;
+        message.userID = props.store.auth.user._id;
+        socket.emit('update_read', message);
 
-    function updateThroughSocket(messages) {
+    });
 
-        messages.forEach((message) => {
+}
 
-            message.userID = props.store.auth.user._id;
-            socket.emit('update_read', message);
+return <div id="appointmentComponent" className="card">
 
-        });
+    <Launcher
+        handleClick={() => {
+            setOpenChat(!openChat);
+        }}
+        isOpen={openChat}
+        agentProfile={{
+            teamName: 'Doctor Chat',
+            imageUrl: 'https://a.slack-edge.com/66f9/img/avatars-teams/ava_0001-34.png'
+        }}
+        onMessageWasSent={(message) => {
 
+            message.author = user._id;
+            message.receiver = selectedDoctor._id;
+
+            socket.emit('sent_message_all', message);
+
+        }}
+        messageList={messageList}
+        showEmoji
+    />
+
+    <div className="text-left">
+        <label>Selected domain</label> <a id="dropdown-trigger-appointment" class='btn' href='#' data-target='category_picker_appointment'>{category}</a>
+    </div>
+    <ul id='category_picker_appointment' class='dropdown-content'>
+        {
+            (props.store.auth.categories || []).map((category) => {
+                return <li onClick={(evt) => {
+
+                    setCategory(category.name);
+
+                    // let selectedCategory = evt.target.innerText.trim();
+
+                    loadDoctorsByCategory({ id: category._id, patientID: props.store.auth.user._id }).then((res) => {
+                        setDoctors(res.data);
+                        window.cDoctors = res.data;
+                    });
+
+
+                }} data-id={category._id}>{
+                        category.name
+                    }</li>
+            })
+        }
+    </ul>
+
+
+
+    {
+        (props.store.auth.doctors.length > 0 || window.cDoctors.length > 0) && <div className="text-left">
+            <h6 className="text-left">{props.store.auth.doctors.length || window.cDoctors.length} doctors avaiable!</h6>
+            <table className="striped">
+                <thead>
+                    <th>Doctor Pic</th>
+                    <th>Doctor Name</th>
+                    <th>Contact</th>
+                    <th>Email</th>
+                    <th></th>
+                </thead>
+                {
+                    (props.store.auth.doctors.length ? props.store.auth.doctors : window.cDoctors).map((doctor) => {
+                        return <tr style={{ backgroundColor: selectedDoctor == doctor ? "#efefef" : "" }}>
+                            <td><img className="doctor-thumb" src={doctor.profilePic} /></td>
+                            <td>{doctor.name}</td>
+                            <td>{doctor.contact}</td>
+                            <td>{doctor.email}</td>
+                            <td><button className="def-btn" onClick={() => {
+
+                                getSchedule(doctor._id).then((res) => {
+
+                                    setSchedule(res.data.schedules);
+
+                                });
+
+                                setSelectedDoctor(doctor);
+                            }}>Select</button></td>
+                            <td>
+                                <Link to={'/about/' + doctor._id} class="def-btn">Details</Link>
+                            </td>
+                            <td>
+                                <button className="def-btn" onClick={() => {
+                                    setSelectedDoctor(doctor);
+                                    loadMessages({
+                                        author: props.store.auth.user._id,
+                                        receiver: doctor._id
+                                    }).then((res) => {
+
+
+                                        if (res.data.success) {
+                                            res.data.messages.forEach((message) => {
+                                                if (message.author == props.store.auth.user._id) {
+                                                    message.author = "me";
+                                                }
+                                            });
+                                            outerMessgeList = res.data.messages
+                                            setMessageList(outerMessgeList);
+
+                                            let freshMessages = outerMessgeList.filter((message) => {
+                                                return message.readBy.indexOf(props.store.auth.user._id) == -1;
+                                            })
+
+                                            if (!sentMessages) {
+                                                sentMessages = true;
+                                                updateThroughSocket(freshMessages);
+                                            }
+                                        }
+
+                                    })
+                                    setOpenChat(true);
+                                }}>Send Message</button>
+                                <span onClick={() => {
+
+                                    // setOpenChat(true);
+
+                                    // outerMessgeList = doctor.messages;
+                                    // setMessageList(doctor.messages)
+
+                                    // let freshMessages =  outerMessgeList.filter((message) => {
+                                    //     return   message.readBy.indexOf(props.store.auth.user._id) == -1;
+                                    // })
+
+                                    // if (!sentMessages) {
+                                    //     sentMessages = true;
+                                    //     updateThroughSocket(freshMessages);
+                                    // }
+
+                                }} className="bubble-message">{
+
+                                        doctor.messages.filter((message) => {
+                                            return (message.author != "me" && message.author != props.store.auth.user._id) && message.readBy.indexOf(props.store.auth.user._id) == -1;
+                                        }).length
+
+                                    }</span>
+                            </td>
+                        </tr>
+                    })
+                }
+            </table>
+        </div>
     }
 
-    return <div id="appointmentComponent" className="card">
+    <div className="text-left">
+        <label>Symptoms</label>
+        <textarea className="height-100" onChange={(evt) => {
 
-        <Launcher
-            handleClick={() => {
-                setOpenChat(!openChat);
-            }}
-            isOpen={openChat}
-            agentProfile={{
-                teamName: 'Doctor Chat',
-                imageUrl: 'https://a.slack-edge.com/66f9/img/avatars-teams/ava_0001-34.png'
-            }}
-            onMessageWasSent={(message) => {
+            setSymptoms(evt.target.value);
 
-                message.author = user._id;
-                message.receiver = selectedDoctor._id;
+        }}></textarea>
+    </div>
+    {selectedDoctor._id && <div className="text-center">
+        <h6><label className="def-btn" for="appointment_datepicker">Request a schedule</label></h6>
+    </div>}
 
-                socket.emit('sent_message_all', message);
-
-            }}
-            messageList={messageList}
-            showEmoji
-        />
-
-        <div className="text-left">
-            <label>Selected domain</label> <a id="dropdown-trigger-appointment" class='btn' href='#' data-target='category_picker_appointment'>{category}</a>
-        </div>
-        <ul id='category_picker_appointment' class='dropdown-content'>
-            {
-                (props.store.auth.categories || []).map((category) => {
-                    return <li onClick={(evt) => {
-
-                        setCategory(category.name);
-
-                        // let selectedCategory = evt.target.innerText.trim();
-
-                        loadDoctorsByCategory({ id: category._id, patientID: props.store.auth.user._id }).then((res) => {
-                            setDoctors(res.data);
-                            cDoctors = res.data;
-                        });
-
-
-                    }} data-id={category._id}>{
-                            category.name
-                        }</li>
-                })
-            }
-        </ul>
-
-
-
-        {
-            (props.store.auth.doctors.length > 0 || cDoctors.length > 0) && <div className="text-left">
-                <h6 className="text-left">{props.store.auth.doctors.length || cDoctors.length} doctors avaiable!</h6>
-                <table className="striped">
-                    <thead>
-                        <th>Doctor Pic</th>
-                        <th>Doctor Name</th>
-                        <th>Contact</th>
-                        <th>Email</th>
-                        <th></th>
-                    </thead>
-                    {
-                        (props.store.auth.doctors.length ? props.store.auth.doctors : cDoctors).map((doctor) => {
-                            return <tr style={{ backgroundColor: selectedDoctor == doctor ? "#efefef" : "" }}>
-                                <td><img className="doctor-thumb" src={doctor.profilePic} /></td>
-                                <td>{doctor.name}</td>
-                                <td>{doctor.contact}</td>
-                                <td>{doctor.email}</td>
-                                <td><button className="def-btn" onClick={() => {
-
-                                    getSchedule(doctor._id).then((res) => {
-
-                                        setSchedule(res.data.schedules);
-
-                                    });
-
-                                    setSelectedDoctor(doctor);
-                                }}>Select</button></td>
-                                <td>
-                                    <Link to={'/about/' + doctor._id} class="def-btn">Details</Link>
-                                </td>
-                                <td>
-                                    <button className="def-btn" onClick={() => {
-                                        setSelectedDoctor(doctor);
-                                        loadMessages({
-                                            author: props.store.auth.user._id,
-                                            receiver: doctor._id
-                                        }).then((res) => {
-
-
-                                            if (res.data.success) {
-                                                res.data.messages.forEach((message) => {
-                                                    if (message.author == props.store.auth.user._id) {
-                                                        message.author = "me";
-                                                    }
-                                                });
-                                                outerMessgeList = res.data.messages
-                                                setMessageList(outerMessgeList);
-
-                                                let freshMessages = outerMessgeList.filter((message) => {
-                                                    return message.readBy.indexOf(props.store.auth.user._id) == -1;
-                                                })
-
-                                                if (!sentMessages) {
-                                                    sentMessages = true;
-                                                    updateThroughSocket(freshMessages);
-                                                }
-                                            }
-
-                                        })
-                                        setOpenChat(true);
-                                    }}>Send Message</button>
-                                    <span onClick={() => {
-
-                                        // setOpenChat(true);
-
-                                        // outerMessgeList = doctor.messages;
-                                        // setMessageList(doctor.messages)
-
-                                        // let freshMessages =  outerMessgeList.filter((message) => {
-                                        //     return   message.readBy.indexOf(props.store.auth.user._id) == -1;
-                                        // })
-
-                                        // if (!sentMessages) {
-                                        //     sentMessages = true;
-                                        //     updateThroughSocket(freshMessages);
-                                        // }
-
-                                    }} className="bubble-message">{
-
-                                            doctor.messages.filter((message) => {
-                                                return (message.author != "me" && message.author != props.store.auth.user._id) && message.readBy.indexOf(props.store.auth.user._id) == -1;
-                                            }).length
-
-                                        }</span>
-                                </td>
-                            </tr>
-                        })
-                    }
-                </table>
-            </div>
-        }
-
-        <div className="text-left">
-            <label>Symptoms</label>
-            <textarea className="height-100" onChange={(evt) => {
-
-                setSymptoms(evt.target.value);
-
-            }}></textarea>
-        </div>
-        {selectedDoctor._id && <div className="text-center">
-            <h6><label className="def-btn" for="appointment_datepicker">Request a schedule</label></h6>
-        </div>}
-
-        {/* <ul id='date_picker_appointment' class='dropdown-content'>
+    {/* <ul id='date_picker_appointment' class='dropdown-content'>
             {
                 props.store.auth.categories.map((category) => {
                     return <li onClick={(evt) => {
@@ -475,16 +476,16 @@ function Login(props) {
         </ul> */}
 
 
-        <div>
+    <div>
 
-            <input type="text" id="appointment_datepicker" hidden />
+        <input type="text" id="appointment_datepicker" hidden />
 
 
-        </div>
+    </div>
 
-        <ConfirmDialog data={{ doctor: selectedDoctor, category: category, symptoms: symptoms, date: date }} />
+    <ConfirmDialog data={{ doctor: selectedDoctor, category: category, symptoms: symptoms, date: date }} />
 
-    </div >
+</div >
 
 }
 
